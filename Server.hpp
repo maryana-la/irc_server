@@ -20,9 +20,11 @@
 
 using namespace std;
 
-class Commander;
+class Command;
 class Channel;
 class Server;
+class Client;
+
 
 class Client {
 
@@ -30,27 +32,42 @@ private:
 	int						_sockFd;
 	int						_port;
 	std::string				_id;
+    std::string             _username;
 	std::string				_host;
+    std::string				_servername;
+    std::string				_realname;
 	std::string				_nickname;
-	std::string				_realname;
 	std::string				_message;
 	std::string				_awayMessage;
-	bool					_enterPassword;
-	bool					_registered;
-	bool					_isOperator;
+    bool    _passValid;
+    bool    _registered;
+
 
 public:
 	Client(int sockFd, int port, Server *serv, char *host = nullptr);
 	~Client(void) {};
 
-	std::string getNick(void) {return _nickname;}
-	int			getSockFd(void) {return _sockFd;}
+
+    int			getSockFd(void) {return _sockFd;}
+    int			getPort(void) {return _port;}
+
+
+    std::string getNick(void) {return _nickname;}
+
 	std::string	getHost(void) {return _host;}
-	int			getPort(void) {return _port;}
+
 	std::string getRealname(void) {return _realname;}
-	bool		getEnterPassword(void) {return _enterPassword;}
+//	bool		getEnterPassword(void) {return _enterPassword;}
 	
 	std::string getMessage() { return _message; }
+    bool getRegisterStatus() { return _registered; }
+    bool checkNameStatus() { return((_username[0] && _host[0] && _servername[0] && _realname[0])); }
+
+
+    void setPassStatus() { _passValid = true; }
+    void setRegisterStatus() { _registered = true; }
+
+
 
 	void		clearMessage(void);
 	void		appendMessage(std::string message);
@@ -70,7 +87,6 @@ private:
 		std::vector<Client *>	_clients;
 		std::vector<Channel *>	_channels;
 		int						_id[3];
-		Commander				*_Commander;
 
 public:
 		Server(const std::string host, const std::string port, const std::string pass);
@@ -85,6 +101,16 @@ public:
 		void					recvMessage(Client *client);
 
 	void Fatal(std::string str);
+
+
+    void parser(Client *client, std::string msg);
+
+    /*
+     * Commands
+     */
+    void passExec(Client &client, std::vector<std::string> args);
 };
+
+void sendMessage(int socket_fd, const std::string &msg);
 
 #endif

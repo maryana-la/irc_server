@@ -69,7 +69,7 @@ void Server::start(void){
 	pollfd	newPollfd = {_sock, POLLIN, 0};
 	pollfd	ptrPollfd;
 
-//	_Commander = new Commander(this);
+//	_Commander = new Command(this);
 	if (fcntl(_sock, F_SETFL, O_NONBLOCK) == -1)
 	 	Server::Fatal("Error: poll: fcntl");
 	
@@ -117,6 +117,9 @@ void Server::start(void){
 					if (isdigit(tmp->getMessage()[0]))
 						send(atoi(tmp->getMessage().c_str()), tmp->getMessage().c_str(), tmp->getMessage().length(), 0);
 					send(tmp->getSockFd(), tmp->getMessage().c_str(), tmp->getMessage().length(), 0);
+
+                    parser((*itClient), (*itClient)->getMessage());
+
 //					_Commander->parse((*itClient), (*itClient)->getMessage());
 				}
 			}
@@ -172,10 +175,8 @@ void Server::Fatal(std::string str){
 Client::Client(int sockFd, int port, Server *serv, char *host) : _sockFd(sockFd), _port(port), _host(host){
 	_nickname = "";
 	_realname = "";
-	_isOperator = false;
 	_awayMessage = "";
-	_enterPassword = false;
-	_registered = false;
+    _passValid = false;
 	_id = serv->getId(0) + serv->getId(1) + serv->getId(2);
 }
 
@@ -190,3 +191,40 @@ void			Client::appendMessage(string message)
 //	_message.append("_hello");
 	_message.append("\n");
 }
+
+void Server::parser(Client *client, std::string msg) {
+    std::vector<std::string> args;
+    char* tmp;
+    tmp = std::strtok(const_cast<char *>(msg.c_str()), " ");
+
+    while (tmp != NULL) {
+        args.push_back(tmp);
+        tmp = strtok (NULL, " \n");
+    }
+    if (args[0] == "PASS")
+        passExec(*client, args);
+}
+
+
+void Server::passExec(Client &client, std::vector<std::string> args) {
+    if (args.size() > 2) {
+        sendMessage(client.getSockFd(), "error 461\n");  //todo maybe kill client
+        return ;
+    }
+    if (args[1] == _pass) {
+        if (!client.getRegisterStatus()) {
+            client.setPassStatus();
+            sendMessage(client.getSockFd(), "password correct\n");
+        }
+        else
+            sendMessage(client.getSockFd(), "error 462\n");
+    }
+    if (client.checkNameStatus() && !client.getNick().empty())
+        client.setRegisterStatus();
+
+}
+
+void sendMessage(int socket_fd, const std::string &msg) {
+    send(socket_fd, msg.c_str(), msg.length(), 0);
+}
+
