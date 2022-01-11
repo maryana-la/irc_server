@@ -114,9 +114,9 @@ void Server::start(void){
 					recvMessage(*itClient);
 					cout << "parcer called\n";
 					Client *tmp = *itClient;
-					if (isdigit(tmp->getMessage()[0]))
-						send(atoi(tmp->getMessage().c_str()), tmp->getMessage().c_str(), tmp->getMessage().length(), 0);
-					send(tmp->getSockFd(), tmp->getMessage().c_str(), tmp->getMessage().length(), 0);
+//					if (isdigit(tmp->getMessage()[0]))
+//						send(atoi(tmp->getMessage().c_str()), tmp->getMessage().c_str(), tmp->getMessage().length(), 0);
+//					send(tmp->getSockFd(), tmp->getMessage().c_str(), tmp->getMessage().length(), 0);
 
                     parser((*itClient), (*itClient)->getMessage());
 
@@ -188,7 +188,6 @@ void			Client::appendMessage(string message)
 {
 	_message.append(message);
 	_message.erase(_message.find_last_not_of("\r\n") + 1);
-//	_message.append("_hello");
 	_message.append("\n");
 }
 
@@ -201,30 +200,38 @@ void Server::parser(Client *client, std::string msg) {
         args.push_back(tmp);
         tmp = strtok (NULL, " \n");
     }
-    if (args[0] == "PASS")
-        passExec(*client, args);
+
+
+    /* find command and execute */
+
+
+    try {
+		// todo replace with switch case
+        if (args[0] == "PASS")
+            passExec(*client, args);
+		else if (args[0] == "USER")
+			userExec(*client, args);
+		else if (args[0] == "NICK")
+			nickExec(*client, args);
+
+
+
+		//todo clear memory for args in the end
+		args.clear();
+    }
+    catch (char *msg) {
+        std::cout << msg << " char\n";
+    }
+    catch (std::string &msg) {
+        sendMessage(msg, client->getSockFd());
+        std::cout << msg << " string\n"; //cout to server
+    }
+    catch (...) {
+        std::cout << " catch all\n";
+    }
 }
 
-
-void Server::passExec(Client &client, std::vector<std::string> args) {
-    if (args.size() > 2) {
-        sendMessage(client.getSockFd(), "error 461\n");  //todo maybe kill client
-        return ;
-    }
-    if (args[1] == _pass) {
-        if (!client.getRegisterStatus()) {
-            client.setPassStatus();
-            sendMessage(client.getSockFd(), "password correct\n");
-        }
-        else
-            sendMessage(client.getSockFd(), "error 462\n");
-    }
-    if (client.checkNameStatus() && !client.getNick().empty())
-        client.setRegisterStatus();
-
-}
-
-void sendMessage(int socket_fd, const std::string &msg) {
+void sendMessage(const std::string &msg, int socket_fd) {
     send(socket_fd, msg.c_str(), msg.length(), 0);
 }
 
