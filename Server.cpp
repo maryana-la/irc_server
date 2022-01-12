@@ -192,14 +192,17 @@ void			Client::appendMessage(string message)
 }
 
 void Server::parser(Client *client, std::string msg) {
-    std::vector<std::string> args;
-    char* tmp;
-    tmp = std::strtok(const_cast<char *>(msg.c_str()), " ");
 
-    while (tmp != NULL) {
-        args.push_back(tmp);
-        tmp = strtok (NULL, " \n");
-    }
+	std::vector<std::string> args;
+	args = split(msg, " \n");
+
+//    char* tmp;
+//    tmp = std::strtok(const_cast<char *>(msg.c_str()), " ");
+//
+//    while (tmp != NULL) {
+//        args.push_back(tmp);
+//        tmp = strtok (NULL, " \n");
+//    }
 
 
     /* find command and execute */
@@ -213,6 +216,8 @@ void Server::parser(Client *client, std::string msg) {
 			userExec(*client, args);
 		else if (args[0] == "NICK")
 			nickExec(*client, args);
+		else if (args[0] == "JOIN")
+			joinExec(*client, args);
 
 
 

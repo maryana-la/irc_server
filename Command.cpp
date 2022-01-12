@@ -32,7 +32,7 @@ void Server::nickExec(Client &client, std::vector<std::string> &args) {
 
 	/* check amount of args provided */
 	if (args.size() < 2 || args.size() > 3) {
-		throw ERR_NONICKNAMEGIVEN(); //
+		throw ERR_NONICKNAMEGIVEN();
 	}
 
 	/* check if nickname is a valid string */
@@ -65,7 +65,7 @@ void Server::userExec(Client &client, std::vector<std::string> &args) {
 	/* check if number of args is ok */
 	if (args.size() != 5) {
 		std::string comm = "USER";
-		throw ERR_NEEDMOREPARAMS(comm); //
+		throw ERR_NEEDMOREPARAMS(comm);
 	}
 
 	/* check if already registered */
@@ -86,6 +86,49 @@ void Server::userExec(Client &client, std::vector<std::string> &args) {
 	}
 }
 
+
+void Server::joinExec(Client &client, std::vector<std::string> &args) {
+	/* check if number of args is ok */
+	if (args.size() < 2 || args.size() > 3) {
+		std::string comm = "JOIN";
+		throw ERR_NEEDMOREPARAMS(comm);
+	}
+
+	/* split channels and keys by ',' */
+	std::vector<std::string> channels;
+	std::vector<std::string> keys;
+	channels = split(args[1], ",");
+	if (args.size() == 3)
+		keys = split(args[2], ",");
+
+	/* only 1 argument provided */
+	if (args.size() == 2) {
+		if (channels[0][0] == '#') {
+			std::vector<Channel *>::iterator it = _channels.begin();
+			std::vector<Channel *>::iterator ite = _channels.end();
+
+			/* check if channel already exists */
+			for (; it != ite; it++) {
+				/* if channel found */
+				if ((*it)->getChannelName() == channels[0]) {
+					//todo check if user banned, if invite only, if < maxUsers
+					(*it)->addUser(client);
+					sendMessage("user added to channel", client.getSockFd());
+					break;
+				}
+			}
+
+			/* if channel is not found */
+			if (it == ite) {
+				/* create new Channel and set attributes */
+				Channel *tmp = new Channel(channels[0], client);
+				_channels.push_back(tmp);
+				std::string msg = "channel " + channels[0] + " created, admin " + client.getNick() + "\n";
+				sendMessage(msg, client.getSockFd());
+			}
+		}
+	}
+}
 
 
 

@@ -29,7 +29,6 @@ class Client;
 
 
 class Client {
-
 private:
 	int						_sockFd;
 	int						_port;
@@ -50,67 +49,94 @@ public:
 	~Client(void) {};
 
 
-    int			getSockFd(void) {return _sockFd;}
-    int			getPort(void) {return _port;}
+    int			getSockFd()			{return _sockFd;}
+    int			getPort() 			{return _port;}
+    std::string getNick() 			{return _nickname;}
+	std::string	getHost() 			{return _host;}
+	std::string getRealname() 		{return _realname;}
+	std::string getMessage() 		{ return _message; }
+    bool 		getRegisterStatus() { return _registered; }
+	bool 		getPassStatus() 	{ return _passValid; }
+    bool 		checkUserStatus() 	{ return((_username[0] && _host[0] && _servername[0] && _realname[0])); }
 
+    void setNick(const std::string &name) 			{ _nickname = name; }
+	void setUserName (const std::string &name) 		{ _username = name; }
+	void setHostName (const std::string &name) 		{ _host = name; }
+	void setServerName (const std::string &name) 	{ _servername = name; }
+	void setRealName (const std::string &name) 		{ _realname = name; }
+	void setPassStatus()							{ _passValid = true; }
+	void setRegisterStatus()						{ _registered = true; }
 
-    std::string getNick(void) {return _nickname;}
-	std::string	getHost(void) {return _host;}
-
-	std::string getRealname(void) {return _realname;}
-//	bool		getEnterPassword(void) {return _enterPassword;}
-	
-	std::string getMessage() { return _message; }
-    bool getRegisterStatus() { return _registered; }
-	bool getPassStatus() { return _passValid; }
-    bool checkUserStatus() { return((_username[0] && _host[0] && _servername[0] && _realname[0])); }
-
-
-    void setNick(const std::string &name) { _nickname = name; }
-	void setUserName (const std::string &name) { _username = name; }
-	void setHostName (const std::string &name) { _host = name; }
-	void setServerName (const std::string &name) { _servername = name; }
-	void setRealName (const std::string &name) { _realname = name; }
-
-	void setPassStatus() { _passValid = true; }
-    void setRegisterStatus() { _registered = true; }
-
-
-
-	void		clearMessage(void);
+	void		clearMessage();
 	void		appendMessage(std::string message);
-	void		sendMessageToClient(std::string message);
-//	void		registered();
+};
+
+class Channel {
+private:
+	const std::string 		_name;
+	std::string 			_topic;
+	int						_numUsers;
+	int 					_maxUsers;
+	std::vector<Client *>	_users;
+	std::vector<Client *>	_operators;
+	std::vector<Client *>	_banned;
+	bool 					_inviteOnly;
+
+	Channel() {}
+public:
+	Channel(const std::string& channel_name, Client &user) : _name(channel_name), _inviteOnly(false) {
+		_topic = "";
+		_numUsers = 1;
+		_maxUsers = 30;
+		_users.push_back(&user);
+		_operators.push_back(&user);
+	};
+
+	Channel(const std::string& channel_name, Client &user, bool invite) : _name(channel_name), _inviteOnly(invite) {
+		_topic = "";
+		_numUsers = 1;
+		_maxUsers = 30;
+		_users.push_back(&user);
+		_operators.push_back(&user);
+	}
+
+	std::string getChannelName() const { return _name; }
+	std::string getTopic() const { return _topic; };
+	int 		getNumUsers() const { return _numUsers; }
+	int			getMaxUsers() const { return _maxUsers; }
+
+
+	void addUser(Client &user) 		{ _users.push_back(&user); }
+	void addOperator(Client &user) 	{ _operators.push_back(&user); }
+	void setTopic (const std::string &topic) { _topic = topic; }
+
 };
 
 
 class Server{
-
 private:
-		const std::string		_host;
-		const std::string		_port;
-		const std::string		_pass;
-		int						_sock;
-		std::vector<pollfd>		_pollfds;
-		std::vector<Client *>	_clients;
-		std::vector<Channel *>	_channels;
-		int						_id[3];
+	const std::string		_host;
+	const std::string		_port;
+	const std::string		_pass;
+	int						_sock;
+	std::vector<pollfd>		_pollfds;
+	std::vector<Client *>	_clients;
+	std::vector<Channel *>	_channels;
+	int						_id[3];
 
 public:
-		Server(const std::string host, const std::string port, const std::string pass);
-		~Server(void) {};
+	Server(const std::string host, const std::string port, const std::string pass);
+	~Server() {};
 
-		int	getId(int i);
-		Client *getIdClient(std::string id);
+	int	getId(int i);
+	Client *getIdClient(std::string id);
 
-		void					createSocket(void);
-		void					start(void);
-		int						createClient(void);
-		void					recvMessage(Client *client);
+	void					createSocket();
+	void					start();
+	int						createClient();
+	void					recvMessage(Client *client);
 
 	void Fatal(std::string str);
-
-
     void parser(Client *client, std::string msg);
 
     /*
@@ -119,12 +145,13 @@ public:
     void passExec(Client &client, std::vector<std::string> &args);
 	void userExec(Client &client, std::vector<std::string> &args);
 	void nickExec(Client &client, std::vector<std::string> &args);
+	void joinExec(Client &client, std::vector<std::string> &args);
 
 
 };
 
 void sendMessage(const std::string &msg, int socket_fd);
-
+std:: vector<std::string> split(const std::string& line, const std::string& delimiter);
 
 /*
  *  Error Replies
@@ -147,9 +174,9 @@ void sendMessage(const std::string &msg, int socket_fd);
 # define ERR_NOADMININFO(server_name) (server_name + " :No administrative info available\r\n")  //423
 # define ERR_FILEERROR(operation, file) (":File error doing " + operation + " on " + file + "\r\n")  //424
 # define ERR_NONICKNAMEGIVEN() (":No nickname given\r\n")  //431
-# define ERR_ERRONEUSNICKNAME(nickname) (nickname + " :Erroneus nickname\r\n")  //432
-# define ERR_NICKNAMEINUSE(nick) (nick + " :Nickname is already in use\r\n")  //433
-# define ERR_NICKCOLLISION(nickname) (nickname + " :Nickname collision KILL\r\n")  //436
+# define ERR_ERRONEUSNICKNAME(nick) ((nick) + " :Erroneus nickname\r\n")  //432
+# define ERR_NICKNAMEINUSE(nick) ((nick) + " :Nickname is already in use\r\n")  //433
+# define ERR_NICKCOLLISION(nick) ((nick) + " :Nickname collision KILL\r\n")  //436
 
 
 # define ERR_USERNOTINCHANNEL(nickname, channel) ((nick) + " " + (channel) + " :They aren't on that channel\r\n")  //441
@@ -159,7 +186,7 @@ void sendMessage(const std::string &msg, int socket_fd);
 # define ERR_SUMMONDISABLED() (":SUMMON has been disabled\r\n")  //445
 # define ERR_USERSDISABLED() (":USERS has been disabled\r\n")  //446
 # define ERR_NOTREGISTERED() (":You have not registered\r\n")
-# define ERR_NEEDMOREPARAMS(command)		(command + " :Not enough parameters")
+# define ERR_NEEDMOREPARAMS(command)		((command) + " :Not enough parameters\r\n")
 # define ERR_ALREADYREGISTRED()				(":Unauthorized command (already registered)\r\n")
 # define ERR_NOPERMFORHOST() (":Your host isn't among the privileged\r\n")
 # define ERR_PASSWDMISMATCH() (":Password incorrect\r\n")
