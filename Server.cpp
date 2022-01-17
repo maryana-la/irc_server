@@ -114,8 +114,10 @@ void Server::start(void){
 					std::vector<Client *>::iterator	itClient = _clients.begin();
 					advance(itClient, distance(_pollfds.begin(), itPollfd) - 1);
 					recvMessage(*itClient);
+
+					std::cout << (*itClient)->getNick() << ": " << (*itClient)->getMessage() << "\n";
 					std::cout << "parcer called\n";
-					Client *tmp = *itClient;
+//					Client *tmp = *itClient;
 //					if (isdigit(tmp->getMessage()[0]))
 //						send(atoi(tmp->getMessage().c_str()), tmp->getMessage().c_str(), tmp->getMessage().length(), 0);
 //					send(tmp->getSockFd(), tmp->getMessage().c_str(), tmp->getMessage().length(), 0);
@@ -195,8 +197,9 @@ void			Client::appendMessage(std::string message)
 
 void Server::parser(Client *client, std::string msg) {
 
-	std::vector<std::string> args;
-	args = split(msg, " \n");
+
+	std::vector<std::string> common;
+	common = split(msg, "\n\r");
 
 //    char* tmp;
 //    tmp = std::strtok(const_cast<char *>(msg.c_str()), " ");
@@ -209,36 +212,45 @@ void Server::parser(Client *client, std::string msg) {
 
     /* find command and execute */
 
+	for (int i = 0; i < common.size(); i++)
+	{
+		std::vector<std::string> args = split(common[i], " ");
+		try
+		{
+			// todo replace with switch case
+			if (args[0] == "PASS" || args[0] == "pass")
+				passExec(*client, args);
+			else if (args[0] == "USER" || args[0] == "user")
+				userExec(*client, args);
+			else if (args[0] == "NICK" || args[0] == "nick")
+				nickExec(*client, args);
+			else if (args[0] == "JOIN" || args[0] == "join")
+				joinExec(*client, args);
+			else if (args[0] == "PRIVMSG" || args[0] == "privmsg")
+				privmsgExec(*client, args);
 
-    try {
-		// todo replace with switch case
-        if (args[0] == "PASS")
-            passExec(*client, args);
-		else if (args[0] == "USER")
-			userExec(*client, args);
-		else if (args[0] == "NICK")
-			nickExec(*client, args);
-		else if (args[0] == "JOIN")
-			joinExec(*client, args);
 
-
-
-		//todo clear memory for args in the end
-		args.clear();
-    }
-    catch (char *msg) {
-        std::cout << msg << " char\n";
-    }
-    catch (std::string &msg) {
-        sendMessage(msg, client->getSockFd());
-        std::cout << msg << " string\n"; //cout to server
-    }
-    catch (...) {
-        std::cout << " catch all\n";
-    }
+			//todo clear memory for args in the end
+			args.clear();
+		}
+		catch (char *msg)
+		{
+			std::cout << msg << " char\n";
+		}
+		catch (std::string &msg)
+		{
+			sendMessage(msg, client->getSockFd());
+			std::cout << msg << " string\n"; //cout to server
+		}
+		catch (...)
+		{
+			std::cout << " catch all\n";
+		}
+	}
 }
+
+
 
 void sendMessage(const std::string &msg, int socket_fd) {
     send(socket_fd, msg.c_str(), msg.length(), 0);
 }
-

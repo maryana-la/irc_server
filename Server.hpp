@@ -143,7 +143,7 @@ public:
 	void addOperator(Client &user) { _operators.push_back(&user); }
 
 	void setTopic (const std::string &topic) { _topic = topic; }
-
+	void sendMsgToChan (const std::string &message);
 };
 
 
@@ -182,6 +182,19 @@ public:
 	void userExec(Client &client, std::vector<std::string> &args);
 	void nickExec(Client &client, std::vector<std::string> &args);
 	void joinExec(Client &client, std::vector<std::string> &args);
+	void privmsgExec(Client &client, std::vector<std::string> &args);
+
+
+
+
+
+
+	/*
+	 * Server Utils
+	 */
+	Client *findClient(const std::string &clientNick);
+	Channel *findChannel(const std::string &channelName);
+
 
 
 };
