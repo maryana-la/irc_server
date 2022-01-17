@@ -130,7 +130,23 @@ void Server::joinExec(Client &client, std::vector<std::string> &args) {
 	}
 }
 
+void Server::privmsgExec(Client &client, std::vector<std::string> &args) {
+	
+	std::string message;
+	for(unsigned int i=2; i<args.size(); i++){
+		message += args[i];
+	}
+	Client *clientDest = findClient(args[1]);
+	if (clientDest){
+		sendMessage((":" + client.getNick() + " PRIVMSG " + args[1] + " :" + message + "\r\n"), clientDest->getSockFd());
+		return;
+	}
 
+	Channel *channelDest = findChannel(args[1]);
+	if (channelDest){
+		channelDest->sendMsgToChan(":" + client.getNick() + " PRIVMSG " + args[1] + " :" + message + "\r\n");
+	}
+}
 
 
 
