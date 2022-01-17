@@ -1,7 +1,7 @@
 #include "Server.hpp"
 
-Server::Server(string host, string port, string pass) : _host(host), _port(port), _pass(pass) {
-	stringstream stream;
+Server::Server(std::string host, std::string port, std::string pass) : _host(host), _port(port), _pass(pass) {
+	std::stringstream stream;
 	
 	int portCheck = 0;
 	stream << port;
@@ -12,6 +12,8 @@ Server::Server(string host, string port, string pass) : _host(host), _port(port)
 	this->createSocket();
 	for (int i = 0; i < 3; i++)
 		_id[i] = 1;
+
+	_maxNumberOfChannels = 100;
 }
 
 int		Server::getId(int i){
@@ -73,24 +75,24 @@ void Server::start(void){
 	if (fcntl(_sock, F_SETFL, O_NONBLOCK) == -1)
 	 	Server::Fatal("Error: poll: fcntl");
 	
-	vector<pollfd>::iterator	iterPoll;
+	std::vector<pollfd>::iterator	iterPoll;
 	_pollfds.push_back(newPollfd);
 
 
 
-	cout << "Server created!" << endl;
+	std::cout << "Server created!" << std::endl;
 
 	while (1)
 	{
 		iterPoll = _pollfds.begin();
 		if (poll(&(*iterPoll), _pollfds.size(), -1) == -1)
 			Server::Fatal("Error: poll");
-		for (vector<pollfd>::iterator itPollfd = _pollfds.begin(); itPollfd != _pollfds.end(); itPollfd++)
+		for (std::vector<pollfd>::iterator itPollfd = _pollfds.begin(); itPollfd != _pollfds.end(); itPollfd++)
 		{
 			ptrPollfd = *itPollfd;
 
 			if ((ptrPollfd.revents & POLLHUP) == POLLHUP){
-        	    vector<Client *>::iterator	itClient = _clients.begin();
+				std::vector<Client *>::iterator	itClient = _clients.begin();
         	    advance(itClient, distance(_pollfds.begin(), itPollfd) - 1);
 
 				if (_clients.empty())
@@ -102,17 +104,17 @@ void Server::start(void){
 			{
 				if (ptrPollfd.fd == _sock)
 				{
-					string str("Entered:\nPASS <password>\nNICK <nickname>\nUSER <username> <flags> <unused> <realname>\n\r");
+					std::string str("Entered:\nPASS <password>\nNICK <nickname>\nUSER <username> <flags> <unused> <realname>\n\r");
 						if (send(createClient(), str.c_str(), str.length(), 0) == -1)
 							Server::Fatal("Error: send");
 					break ;
 				}
 				else
 				{
-					vector<Client *>::iterator	itClient = _clients.begin();
+					std::vector<Client *>::iterator	itClient = _clients.begin();
 					advance(itClient, distance(_pollfds.begin(), itPollfd) - 1);
 					recvMessage(*itClient);
-					cout << "parcer called\n";
+					std::cout << "parcer called\n";
 					Client *tmp = *itClient;
 //					if (isdigit(tmp->getMessage()[0]))
 //						send(atoi(tmp->getMessage().c_str()), tmp->getMessage().c_str(), tmp->getMessage().length(), 0);
@@ -158,16 +160,16 @@ int		Server::createClient(void){
 	_pollfds.push_back(newPollfd);
 	if (fcntl(client_d, F_SETFL, O_NONBLOCK) == -1)
 	 	Server::Fatal("Error: poll: fcntl");
-cout << "New client generated\n";
+	std::cout << "New client generated\n";
 	Client	*newClient = new Client(client_d, ntohs(client_addr.sin_port), this, inet_ntoa(client_addr.sin_addr));
 	_clients.push_back(newClient);
 
-	cout << "New client " << newClient->getNick() << "@" << newClient->getHost() << ":" << newClient->getPort() << endl;
+	std::cout << "New client " << newClient->getNick() << "@" << newClient->getHost() << ":" << newClient->getPort() << std::endl;
 	return client_d;
 }
 
 void Server::Fatal(std::string str){
-	cerr << str << endl;
+	std::cerr << str << std::endl;
 	exit(1);
 }
 
@@ -184,7 +186,7 @@ void		Client::clearMessage(void){
 	_message.clear();
 }
 
-void			Client::appendMessage(string message)
+void			Client::appendMessage(std::string message)
 {
 	_message.append(message);
 	_message.erase(_message.find_last_not_of("\r\n") + 1);

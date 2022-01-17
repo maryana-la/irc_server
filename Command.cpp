@@ -36,7 +36,7 @@ void Server::nickExec(Client &client, std::vector<std::string> &args) {
 	}
 
 	/* check if nickname is a valid string */
-	if (args[1].find_first_not_of(VALIDSET) != std::string::npos || args[1].size() > 9)
+	if (args[1].find_first_not_of(NICK_VALIDSET) != std::string::npos || args[1].size() > 9)
 		throw ERR_ERRONEUSNICKNAME(args[1]);
 
 	/* check if such nick already exists */
@@ -101,36 +101,47 @@ void Server::joinExec(Client &client, std::vector<std::string> &args) {
 	if (args.size() == 3)
 		keys = split(args[2], ",");
 
-	/* only 1 argument provided */
-	if (args.size() == 2) {
-		if (channels[0][0] == '#') {
+	/* iterate by channels */
+	std::vector<std::string>::iterator chIt = channels.begin();
+	std::vector<std::string>::iterator chIte = channels.end();
+
+	for (int i = 0; chIt != chIte; chIt++, i++) {
+		if (checkValidChannelName(channels[i])) {
 			std::vector<Channel *>::iterator it = _channels.begin();
 			std::vector<Channel *>::iterator ite = _channels.end();
 
 			/* check if channel already exists */
 			for (; it != ite; it++) {
 				/* if channel found */
-				if ((*it)->getChannelName() == channels[0]) {
-					//todo check if user banned, if invite only, if < maxUsers
+				if ((*it)->getChannelName() == channels[i]) {
+					//todo check if invite only/invitation
+					if ((*it)->getKeyStatus()) {
+						if (keys.size() <= i || (*it)->getKey() != keys[i])
+							throw ERR_BADCHANNELKEY(channels[i]);
+					}
 					(*it)->addUser(client);
-					sendMessage("user added to channel", client.getSockFd());
+					sendMessage("user is added to channel\n", client.getSockFd());
 					break;
 				}
 			}
 
 			/* if channel is not found */
 			if (it == ite) {
+				if (_channels.size() == _maxNumberOfChannels)
+					throw ERR_TOOMANYCHANNELS(channels[i]);
+
 				/* create new Channel and set attributes */
-				Channel *tmp = new Channel(channels[0], client);
+				Channel *tmp;
+				/* check if key was provided */
+				if (keys.size() >= i)
+					tmp = new Channel(channels[i], keys[i], client);
+				else
+					tmp = new Channel(channels[i], client);
 				_channels.push_back(tmp);
-				std::string msg = "channel " + channels[0] + " created, admin " + client.getNick() + "\n";
+				std::string msg = "channel " + channels[i] + " created, admin " + client.getNick() + "\n";
 				sendMessage(msg, client.getSockFd());
 			}
 		}
 	}
 }
-
-
-
-
 
