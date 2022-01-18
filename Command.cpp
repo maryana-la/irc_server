@@ -63,7 +63,7 @@ void Server::nickExec(Client &client, std::vector<std::string> &args) {
 void Server::userExec(Client &client, std::vector<std::string> &args) {
 
 	/* check if number of args is ok */
-	if (args.size() != 5) {
+	if (args.size() < 5) {
 		std::string comm = "USER";
 		throw ERR_NEEDMOREPARAMS(comm);
 	}
@@ -73,11 +73,18 @@ void Server::userExec(Client &client, std::vector<std::string> &args) {
 		throw ERR_ALREADYREGISTRED();
 
 	//todo check if stings are valid characters
+	std::string realName;
+	if (args.size() > 5) {
+		for (int i = 4; i < args.size(); i++) {
+			realName.append(args[i] + " ");
+//			realName.append(" ");
+		}
+	}
 
 	client.setUserName(args[1]);
 	client.setHostName(args[2]);
 	client.setServerName(args[3]);
-	client.setRealName(args[4]);
+	client.setRealName(realName);
 
 	/* check if NICK & PASS commands are already done succesfully */
 	if (!client.getNick().empty() && client.getPassStatus()) {
@@ -133,7 +140,7 @@ void Server::joinExec(Client &client, std::vector<std::string> &args) {
 				/* create new Channel and set attributes */
 				Channel *tmp;
 				/* check if key was provided */
-				if (keys.size() >= i)
+				if (keys.size() > i)
 					tmp = new Channel(channels[i], keys[i], client);
 				else
 					tmp = new Channel(channels[i], client);

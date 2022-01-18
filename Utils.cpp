@@ -13,6 +13,30 @@ std:: vector<std::string> split(const std::string& line, const std::string& deli
 	return args;
 }
 
+
+std:: vector<std::string> split_args(const std::string& line) {
+
+	std::vector<std::string> args;
+	int i = 0;
+	while (i < line.length()) {
+		if (line[i] == ' ')
+			i++;
+		else {
+			std::string tmp;
+			int begin = i;
+			if (line[i] == ':')
+				for (; i != line.length(); i++);
+			else
+				for(; line[i] != ' ' && i < line.length(); i++);
+//			std::string tmp2;
+//			tmp2
+			tmp.assign(line, begin, i - begin);
+			args.push_back(tmp);
+		}
+	}
+	return args;
+}
+
 //Channels names are strings (beginning with a '&', '#', '+' or '!' character) of length up to 50 characters.
 //Channel names are case insensitive. The only restriction on a channel name is that it SHALL NOT contain any spaces,
 //a control G (ASCII 7) or a comma (',' which is used as a list item separator by the protocol).

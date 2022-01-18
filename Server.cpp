@@ -214,7 +214,7 @@ void Server::parser(Client *client, std::string msg) {
 
 	for (int i = 0; i < common.size(); i++)
 	{
-		std::vector<std::string> args = split(common[i], " ");
+		std::vector<std::string> args = split_args(common[i]);
 		try
 		{
 			// todo replace with switch case

@@ -20,7 +20,7 @@
 # define LOCALHOST "127.0.0.1"
 #define MAX_CONNECTION	1024
 
-#define NICK_VALIDSET		"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890-_[]{}\'| "
+#define NICK_VALIDSET		"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890-_[]{}\'|"
 #define CHANNEL_VALIDSET	"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890-_[]{}\'| "
 
 class Command;
@@ -136,6 +136,7 @@ public:
 			throw ERR_BANNEDFROMCHAN(_name);
 
 		/* add user */
+		//todo check if user already exists
 		_users.push_back(&user);
 		_numUsers++;
 	}
@@ -202,5 +203,6 @@ public:
 void sendMessage(const std::string &msg, int socket_fd);
 int checkValidChannelName(const std::string &name);
 std:: vector<std::string> split(const std::string& line, const std::string& delimiter);
+std:: vector<std::string> split_args(const std::string& line);
 
 #endif
