@@ -183,6 +183,9 @@ public:
 	void userExec(Client &client, std::vector<std::string> &args);
 	void nickExec(Client &client, std::vector<std::string> &args);
 	void joinExec(Client &client, std::vector<std::string> &args);
+	void listExec(Client &client, std::vector<std::string> &args);
+	void topicShort(Client &client, const std::string& channelName);
+	void topicExec(Client &client, std::vector<std::string> &args);
 	void privmsgExec(Client &client, std::vector<std::string> &args);
 
 

@@ -63,7 +63,7 @@ void Server::nickExec(Client &client, std::vector<std::string> &args) {
 void Server::userExec(Client &client, std::vector<std::string> &args) {
 
 	/* check if number of args is ok */
-	if (args.size() < 5) {
+	if (args.size() != 5) {
 		std::string comm = "USER";
 		throw ERR_NEEDMOREPARAMS(comm);
 	}
@@ -73,18 +73,11 @@ void Server::userExec(Client &client, std::vector<std::string> &args) {
 		throw ERR_ALREADYREGISTRED();
 
 	//todo check if stings are valid characters
-	std::string realName;
-	if (args.size() > 5) {
-		for (int i = 4; i < args.size(); i++) {
-			realName.append(args[i] + " ");
-//			realName.append(" ");
-		}
-	}
 
 	client.setUserName(args[1]);
 	client.setHostName(args[2]);
 	client.setServerName(args[3]);
-	client.setRealName(realName);
+	client.setRealName(args[4]);
 
 	/* check if NICK & PASS commands are already done succesfully */
 	if (!client.getNick().empty() && client.getPassStatus()) {
@@ -147,10 +140,52 @@ void Server::joinExec(Client &client, std::vector<std::string> &args) {
 				_channels.push_back(tmp);
 				std::string msg = "channel " + channels[i] + " created, admin " + client.getNick() + "\n";
 				sendMessage(msg, client.getSockFd());
+				topicShort(client, channels[i]);
 			}
 		}
 	}
 }
+
+void Server::listExec(Client &client, std::vector<std::string> &args) {
+
+	/* if list without arguments */
+	if (args.size() == 1) {
+		std::vector<Channel*>::iterator it= _channels.begin();
+		std::vector<Channel*>::iterator ite= _channels.end();
+		for(; it !=ite; it++) {
+			std::string msg = (*it)->getChannelName() + " " + (*it)->getTopic() + "\n";
+			sendMessage(msg, client.getSockFd());
+		}
+	}
+
+}
+
+void Server::topicShort(Client &client, const std::string& channelName) {
+	std::vector<std::string> forTopic;
+	forTopic.push_back("TOPIC");
+	forTopic.push_back(channelName);
+	topicExec(client, forTopic);
+}
+
+
+void Server::topicExec(Client &client, std::vector<std::string> &args) {
+	/* check number of args */
+	if (args.size() < 2 || args.size() > 3)
+		throw ERR_NEEDMOREPARAMS(args[0]);
+
+	/* just print topic */
+	if (args.size() == 2) {
+		Channel* tmp = findChannel(args[1]);
+		if (tmp == NULL)
+			throw "Topic: No such channel\n";
+		if (tmp->getTopic().empty())
+			sendMessage (RPL_NOTOPIC(tmp->getChannelName()), client.getSockFd());
+		else
+			sendMessage(tmp->getTopic(), client.getSockFd());
+	}
+}
+
+
 
 void Server::privmsgExec(Client &client, std::vector<std::string> &args) {
 

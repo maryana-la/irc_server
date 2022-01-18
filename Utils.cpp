@@ -15,21 +15,21 @@ std:: vector<std::string> split(const std::string& line, const std::string& deli
 
 
 std:: vector<std::string> split_args(const std::string& line) {
+	if (line.length() > 510)
+		throw "line is too long\n";
 
 	std::vector<std::string> args;
-	int i = 0;
+	size_t i = 0;
 	while (i < line.length()) {
 		if (line[i] == ' ')
 			i++;
 		else {
 			std::string tmp;
-			int begin = i;
+			size_t begin = i;
 			if (line[i] == ':')
-				for (; i != line.length(); i++);
+				i = line.size() - 1;
 			else
-				for(; line[i] != ' ' && i < line.length(); i++);
-//			std::string tmp2;
-//			tmp2
+				i = line.find(' ', i);
 			tmp.assign(line, begin, i - begin);
 			args.push_back(tmp);
 		}

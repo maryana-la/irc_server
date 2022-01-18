@@ -201,22 +201,13 @@ void Server::parser(Client *client, std::string msg) {
 	std::vector<std::string> common;
 	common = split(msg, "\n\r");
 
-//    char* tmp;
-//    tmp = std::strtok(const_cast<char *>(msg.c_str()), " ");
-//
-//    while (tmp != NULL) {
-//        args.push_back(tmp);
-//        tmp = strtok (NULL, " \n");
-//    }
-
-
     /* find command and execute */
 
 	for (int i = 0; i < common.size(); i++)
 	{
-		std::vector<std::string> args = split_args(common[i]);
 		try
 		{
+			std::vector<std::string> args = split_args(common[i]);
 			// todo replace with switch case
 			if (args[0] == "PASS" || args[0] == "pass")
 				passExec(*client, args);
@@ -226,8 +217,11 @@ void Server::parser(Client *client, std::string msg) {
 				nickExec(*client, args);
 			else if (args[0] == "JOIN" || args[0] == "join")
 				joinExec(*client, args);
+			else if (args[0] == "LIST" || args[0] == "list")
+				listExec(*client, args);
 			else if (args[0] == "PRIVMSG" || args[0] == "privmsg")
 				privmsgExec(*client, args);
+
 
 
 			//todo clear memory for args in the end
