@@ -1,5 +1,12 @@
 #include "Server.hpp"
+void sendmotd(int sockFd){
 
+	sendMessage(":SERV 001 Hello :Welcome to the Internet Relay Network borja!borja@polaris.cs.uchicago.edu", sockFd );
+	sendMessage(":SERV " + RPL_MOTDSTART((std::string)"SERV"), sockFd);
+	sendMessage(":SERV " + RPL_MOTD((std::string)"MOTD is here!!!"), sockFd);
+	sendMessage(":SERV " + (std::string)RPL_ENDOFMOTD(), sockFd);
+	
+}
 void Server::passExec(Client &client, std::vector<std::string> &args) {
 
     /* check amount of args provided */
@@ -24,7 +31,10 @@ void Server::passExec(Client &client, std::vector<std::string> &args) {
     /* check is USER & NICK are already filled */
     if (client.checkUserStatus() && !client.getNick().empty()) {
 		client.setRegisterStatus();
+		sendMessage(":SERV" + RPL_WELCOME(client.getNick()), client.getSockFd());
 		sendMessage("client registered\n", client.getSockFd());
+		sendmotd(client.getSockFd());
+		
 	}
 }
 
@@ -56,6 +66,8 @@ void Server::nickExec(Client &client, std::vector<std::string> &args) {
 	if (client.checkUserStatus() && client.getPassStatus()) {
 		client.setRegisterStatus();
 		sendMessage("client registered\n", client.getSockFd());
+		sendMessage(":SERV" + RPL_WELCOME(client.getNick()), client.getSockFd());
+		sendmotd(client.getSockFd());
 	}
 }
 
@@ -82,7 +94,9 @@ void Server::userExec(Client &client, std::vector<std::string> &args) {
 	/* check if NICK & PASS commands are already done succesfully */
 	if (!client.getNick().empty() && client.getPassStatus()) {
 		client.setRegisterStatus();
+		sendMessage(":SERV" + RPL_WELCOME(client.getNick()), client.getSockFd());
 		sendMessage("client registered\n", client.getSockFd());
+		sendmotd(client.getSockFd());
 	}
 }
 
@@ -189,21 +203,49 @@ void Server::topicExec(Client &client, std::vector<std::string> &args) {
 
 void Server::privmsgExec(Client &client, std::vector<std::string> &args) {
 
+	
+	
+	if(args[1].empty())
+		throw ERR_NORECIPIENT((std::string)"PIVMSG");
+	if(args[2].empty())
+		throw ERR_NOTEXTTOSEND();
+
 	std::string message;
 	for(unsigned int i=2; i<args.size(); i++){
 		message += args[i];
 	}
-	Client *clientDest = findClient(args[1]);
-	if (clientDest){
-		sendMessage((":" + client.getNick() + " PRIVMSG " + args[1] + " :" + message + "\r\n"), clientDest->getSockFd());
-		return;
-	}
+	
+	std::vector<std::string> dests = split(args[1],",");
+	std::vector<std::string>::iterator it = dests.begin();
+	std::vector<std::string>::iterator ite = dests.end();
+	
+	for(; it !=ite; it++){
 
-	Channel *channelDest = findChannel(args[1]);
-	if (channelDest){
-		channelDest->sendMsgToChan(":" + client.getNick() + " PRIVMSG " + args[1] + " :" + message + "\r\n");
+		if((*it)[0] == '#'){
+			Channel *channelDest = findChannel((*it));
+			if (channelDest){
+				channelDest->sendMsgToChan(":" + client.getNick() + " PRIVMSG " + (*it) + " :" + message + "\r\n");
+			}
+			else
+				throw ERR_CANNOTSENDTOCHAN((*it));
+			return;
+		}
+
+		Client *clientDest = findClient(*it);
+		if (clientDest){
+			sendMessage((":" + client.getNick() + " PRIVMSG " + (*it) + " :" + message + "\r\n"), clientDest->getSockFd());
+			return;
+		}
+		else
+			throw ERR_NOSUCHNICK(args[1]);
 	}
+	
+
+
 }
 
+void Server::modeExec(Client &client, std::vector<std::string> &args){
 
+
+}
 

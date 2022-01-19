@@ -14,6 +14,7 @@
 # include <fcntl.h>
 # include <unistd.h>
 # include <poll.h>
+#include <algorithm>
 
 # include "Error_Reply.hpp"
 
@@ -187,6 +188,7 @@ public:
 	void topicShort(Client &client, const std::string& channelName);
 	void topicExec(Client &client, std::vector<std::string> &args);
 	void privmsgExec(Client &client, std::vector<std::string> &args);
+	void modeExec(Client &client, std::vector<std::string> &args);
 
 
 
@@ -207,5 +209,5 @@ void sendMessage(const std::string &msg, int socket_fd);
 int checkValidChannelName(const std::string &name);
 std:: vector<std::string> split(const std::string& line, const std::string& delimiter);
 std:: vector<std::string> split_args(const std::string& line);
-
+void sendmotd(int sockFd);
 #endif
