@@ -115,7 +115,7 @@ void Server::start(void){
 					advance(itClient, distance(_pollfds.begin(), itPollfd) - 1);
 					recvMessage(*itClient);
 
-					std::cout << (*itClient)->getNick() << ": " << (*itClient)->getMessage() << "\n";
+					std::cout << "Client: " << (*itClient)->getNick() << " | Message: " << (*itClient)->getMessage() << "\n";
 					std::cout << "parcer called\n";
 //					Client *tmp = *itClient;
 //					if (isdigit(tmp->getMessage()[0]))
@@ -199,6 +199,7 @@ void Server::parser(Client *client, std::string msg) {
 
 
 	std::vector<std::string> common;
+	msg.erase(std::remove(msg.begin(), msg.end(), ':'), msg.end());
 	common = split(msg, "\n\r");
 
 //    char* tmp;
@@ -242,6 +243,12 @@ void Server::parser(Client *client, std::string msg) {
 			sendMessage(msg, client->getSockFd());
 			std::cout << msg << " string\n"; //cout to server
 		}
+		catch (std::exception &e)
+		{
+			sendMessage(e.what(), client->getSockFd());
+			std::cout << e.what() << "\n"; //cout to server
+			std::cout << msg << " std::exception\n"; //cout to server
+		}
 		catch (...)
 		{
 			std::cout << " catch all\n";
@@ -252,5 +259,6 @@ void Server::parser(Client *client, std::string msg) {
 
 
 void sendMessage(const std::string &msg, int socket_fd) {
-    send(socket_fd, msg.c_str(), msg.length(), 0);
+    std::cout << "To fd " << socket_fd << ": \"" << msg << "\"\n";
+	send(socket_fd, msg.c_str(), msg.length(), 0);
 }
