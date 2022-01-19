@@ -1,10 +1,10 @@
 #include "Server.hpp"
-void sendmotd(int sockFd){
+void sendmotd(Client &client) {
 
-	sendMessage(":SERV 001 Hello :Welcome to the Internet Relay Network borja!borja@polaris.cs.uchicago.edu", sockFd );
-	sendMessage(":SERV " + RPL_MOTDSTART((std::string)"SERV"), sockFd);
-	sendMessage(":SERV " + RPL_MOTD((std::string)"MOTD is here!!!"), sockFd);
-	sendMessage(":SERV " + (std::string)RPL_ENDOFMOTD(), sockFd);
+	sendMessage(":SERV 001 Hello :Welcome to the Internet Relay Network borja!borja@polaris.cs.uchicago.edu", client.getSockFd() );
+	sendMessage((std::string) (":SERVNAME 375 " + client.getNick() + " :- " + "SERVNAME" + " Message of the day - \r\n"), client.getSockFd());
+	sendMessage((":SERVNAME 372 " + client.getNick() + " :- " + " commet place " + "\r\n"), client.getSockFd());
+	sendMessage((":SERVNAME 375 " + client.getNick() + ":End of MOTD command\r\n"), client.getSockFd());
 	
 }
 void Server::passExec(Client &client, std::vector<std::string> &args) {
@@ -33,7 +33,7 @@ void Server::passExec(Client &client, std::vector<std::string> &args) {
 		client.setRegisterStatus();
 		sendMessage(":SERV" + RPL_WELCOME(client.getNick()), client.getSockFd());
 		sendMessage("client registered\n", client.getSockFd());
-		sendmotd(client.getSockFd());
+		sendmotd(client);
 		
 	}
 }
@@ -67,7 +67,7 @@ void Server::nickExec(Client &client, std::vector<std::string> &args) {
 		client.setRegisterStatus();
 		sendMessage("client registered\n", client.getSockFd());
 		sendMessage(":SERV" + RPL_WELCOME(client.getNick()), client.getSockFd());
-		sendmotd(client.getSockFd());
+		sendmotd(client);
 	}
 }
 
@@ -96,7 +96,7 @@ void Server::userExec(Client &client, std::vector<std::string> &args) {
 		client.setRegisterStatus();
 		sendMessage(":SERV" + RPL_WELCOME(client.getNick()), client.getSockFd());
 		sendMessage("client registered\n", client.getSockFd());
-		sendmotd(client.getSockFd());
+		sendmotd(client);
 	}
 }
 

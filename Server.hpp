@@ -209,5 +209,6 @@ void sendMessage(const std::string &msg, int socket_fd);
 int checkValidChannelName(const std::string &name);
 std:: vector<std::string> split(const std::string& line, const std::string& delimiter);
 std:: vector<std::string> split_args(const std::string& line);
-void sendmotd(int sockFd);
+
+void sendmotd(Client &client);
 #endif

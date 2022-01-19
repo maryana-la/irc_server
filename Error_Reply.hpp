@@ -5,6 +5,8 @@
  *  Error Replies
  */
 
+#define SERVNAME	"IRKA"
+
 # define ERR_NOSUCHNICK(nickname) ((nickname) + " :No such nick/channel\r\n")  //401
 # define ERR_NOSUCHSERVER(server_name) ((server_name) + " :No such server\r\n")  //402
 # define ERR_NOSUCHCHANNEL(channel) (channel + " :No such channel\r\n")  //403
@@ -106,9 +108,9 @@
 # define RPL_ENDOFBANLIST(channel) (channel + " :End of list\r\n")
 # define RPL_INFO(info) (":" + info + "\r\n")
 # define RPL_ENDOFINFO() (":End of INFO list\r\n")
-# define RPL_MOTDSTART(server) (":- " + server + " Message of the day - \r\n")
-# define RPL_MOTD(comment) (":- " + comment + "\r\n")
-# define RPL_ENDOFMOTD() (":End of MOTD command\r\n")
+# define RPL_MOTDSTART(nick) (":" + "SERVNAME" + " 375 " + (nick) + " :- " + "SERVNAME" + " Message of the day - \r\n")
+# define RPL_MOTD(nick, comment) (":" + "SERVNAME" + " 372 " + (nick) + " :- " + comment + "\r\n")
+# define RPL_ENDOFMOTD(nick) (":" + "SERVNAME" + " 375 " + nick + ":End of MOTD command\r\n")
 # define RPL_YOUREOPER() (":You are now an IRC operator\r\n")
 # define RPL_REHASHING(config_file) (config_file + " :Rehashing\r\n")
 # define RPL_TIME(server, time_serveur) (server + " :" + time_serveur + "\r\n")
@@ -150,7 +152,6 @@
 # define RPL_ADMINEMAIL(info) (":" + info + "\r\n")
 # define RPL_CREATIONTIME(channel, c_time) (channel + " " + c_time + "\r\n")
 # define RPL_YOURESERVICE(servicename) (":You are service " + servicename + "\r\n")
-
 
 
 #endif //FT_IRC_ERROR_REPLY_HPP

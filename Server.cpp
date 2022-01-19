@@ -199,7 +199,7 @@ void Server::parser(Client *client, std::string msg) {
 
 
 	std::vector<std::string> common;
-	msg.erase(std::remove(msg.begin(), msg.end(), ':'), msg.end());
+//	msg.erase(std::remove(msg.begin(), msg.end(), ':'), msg.end());
 	common = split(msg, "\n\r");
 
     /* find command and execute */
@@ -251,8 +251,3 @@ void Server::parser(Client *client, std::string msg) {
 }
 
 
-
-void sendMessage(const std::string &msg, int socket_fd) {
-    std::cout << "To fd " << socket_fd << ": \"" << msg << "\"\n";
-	send(socket_fd, msg.c_str(), msg.length(), 0);
-}

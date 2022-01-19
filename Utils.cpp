@@ -1,6 +1,12 @@
 #include "Server.hpp"
 
 
+void sendMessage(const std::string &msg, int socket_fd) {
+	std::cout << "To fd " << socket_fd << ": \"" << msg << "\"\n";
+	send(socket_fd, msg.c_str(), msg.length(), 0);
+}
+
+
 std:: vector<std::string> split(const std::string& line, const std::string& delimiter) {
 	std::vector<std::string> args;
 	char* tmp;
@@ -16,7 +22,7 @@ std:: vector<std::string> split(const std::string& line, const std::string& deli
 
 std:: vector<std::string> split_args(const std::string& line) {
 	if (line.length() > 510)
-		throw "line is too long\n";
+		throw "Line is too long\n";
 
 	std::vector<std::string> args;
 	size_t i = 0;
@@ -26,8 +32,10 @@ std:: vector<std::string> split_args(const std::string& line) {
 		else {
 			std::string tmp;
 			size_t begin = i;
-			if (line[i] == ':')
-				i = line.size() - 1;
+			if (line[i] == ':') {
+				i = line.length();
+				begin++;
+			}
 			else
 				i = line.find(' ', i);
 			tmp.assign(line, begin, i - begin);
@@ -81,5 +89,6 @@ void Channel::sendMsgToChan (const std::string &message){
 	for(; it !=ite; it++){
 		sendMessage(message, (*it)->getSockFd());
 	}
-
 }
+
+
