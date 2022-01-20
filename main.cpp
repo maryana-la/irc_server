@@ -14,8 +14,11 @@ int main(int argc, char **argv){
 		exit(1);
 	}
 
-	Server ircserv(LOCALHOST, argv[1], argv[2]);
-	ircserv.start();
+
+	Server server(NULL, argv[1], argv[2]);
+	server.init();
+	server.start();
+
 	
 	
 	

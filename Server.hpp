@@ -46,7 +46,7 @@ private:
     bool    _registered;
 
 public:
-	Client(int sockFd, int port, Server *serv, char *host = NULL);
+	Client(int socketFd) : _sockFd(socketFd), _nickname(""), _passValid(false), _registered(false) {}
 	~Client();
 
     int			getSockFd() const;
@@ -117,31 +117,50 @@ public:
 };
 
 
+#include <string>
+#include <iostream>
+#include <sys/poll.h>
+#include <vector>
+
+
 class Server{
 private:
-	const std::string		_host;
-	const std::string		_port;
-	const std::string		_pass;
-	int						_sock;
-	std::vector<pollfd>		_pollfds;
-	std::vector<Client *>	_clients;
-	std::vector<Channel *>	_channels;
-	unsigned int 			_maxNumberOfChannels;
-	int						_id[3];
+	int _socketFd;
+	const std::string *_host;
+	const std::string &_port;
+	const std::string &_password;
+	std::vector<pollfd> _fds;
+	std::vector<Client *> _users;
+	std::vector<Channel *> _channels;
+	int _maxNumberOfChannels;
+
+	typedef void(Server::*command)(std::vector<std::string> &args, Client &user);
+
+	std::vector<command> commands;
+	std::vector<std::string> commandsName;
 
 public:
-	Server(const std::string host, const std::string port, const std::string pass);
-	~Server() {};
+	
+	Server(const std::string *host, const std::string &port, const std::string &password);
 
-	int	getId(int i);
-	Client *getIdClient(std::string id);
+	virtual ~Server();
 
-	void					createSocket();
-	void					start();
-	int						createClient();
-	void					recvMessage(Client *client);
+	void start();
 
-	void Fatal(std::string str);
+	void init();
+
+	void acceptProcess();
+
+	std::string recvMessage(int fd);
+
+	Client *findUserByFd(int fd);
+
+
+	void commandProcess(Client &user, const std::string &message);
+
+
+
+	void removeUser(Client *user);
     void parser(Client *client, std::string msg);
 
 
@@ -160,7 +179,7 @@ public:
 
 	void privmsgExec(Client &client, std::vector<std::string> &args);
 	void modeExec(Client &client, std::vector<std::string> &args);
-
+	void pingExec(Client &client, std::vector<std::string> &args);
 
 
 	/*

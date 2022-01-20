@@ -62,8 +62,8 @@ int checkValidChannelName(const std::string &name) {
 }
 
 Client *Server::findClient(const std::string &clientNick){
-	std::vector<Client*>::iterator it= _clients.begin();
-	std::vector<Client*>::iterator ite= _clients.end();
+	std::vector<Client*>::iterator it= _users.begin();
+	std::vector<Client*>::iterator ite= _users.end();
 	for(; it !=ite; it++){
 		if ((*it)->getNick() == clientNick)
 			return (*it);

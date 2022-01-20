@@ -20,7 +20,7 @@ void Server::passExec(Client &client, std::vector<std::string> &args) {
 		throw static_cast<std::string>(ERR_ALREADYREGISTRED(client.getNick()));
 
 	/* if  password is correct */
-	if (args[1] == _pass) {
+	if (args[1] == _password) {
 		client.setPassStatus();
 	} else { /* if password is not correct */
 //        sendMessage("password is not correct\n", client.getSockFd());
@@ -47,8 +47,8 @@ void Server::nickExec(Client &client, std::vector<std::string> &args) {
 		throw static_cast<std::string>(ERR_ERRONEUSNICKNAME(args[1]));
 
 	/* check if such nick already exists */
-	std::vector<Client *>::iterator it = _clients.begin();
-	std::vector<Client *>::iterator ite = _clients.end();
+	std::vector<Client *>::iterator it = _users.begin();
+	std::vector<Client *>::iterator ite = _users.end();
 	for (; it != ite; it++) {
 		if (args[1] == (*it)->getNick() && !client.getRegisterStatus())
 			throw static_cast<std::string>(ERR_NICKCOLLISION(args[1]));
