@@ -1,179 +1,179 @@
 #include "Server.hpp"
 
-Server::Server(std::string host, std::string port, std::string pass) : _host(host), _port(port), _pass(pass) {
-	std::stringstream stream;
-	
-	int portCheck = 0;
-	stream << port;
-	stream >> portCheck;
 
-	if (portCheck < 1 || portCheck > 65535)
-		Server::Fatal("The port number is invalid it must be between 1 and 65535 !");
-	this->createSocket();
-	for (int i = 0; i < 3; i++)
-		_id[i] = 1;
+#include <netdb.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <cstring>
+#include <array>
+#include <arpa/inet.h>
+#include "Server.hpp"
+//#include "Client.hpp"
 
-	_maxNumberOfChannels = 100;
+
+Server::Server(const std::string *host, const std::string &port, const std::string &password)
+		: _socketFd(-1), _host(host), _port(port), _password(password) {
+
 }
 
-int		Server::getId(int i){
-	if (i < 0 || i > 2)
-		Server::Fatal("Error: getId");
-	if (_id[i] > 32)
-		_id[i] = 1;
-	_id[i]++;
-	return (_id[i]);
-}
+/**
+ * создание структуры addrinfo, создание сокета и bind
+ */
+void Server::init() {
+	int newSocketFd;
+	int yes = 1;
+	struct addrinfo hints, *serverInfo, *rp;
 
-void	Server::createSocket(){
-	addrinfo	hints;
-	addrinfo	*servinfo;
+	memset(&hints, 0, sizeof hints); // убедимся, что структура пуста
+	hints.ai_family = AF_UNSPEC;     // неважно, IPv4 или IPv6
+	hints.ai_socktype = SOCK_STREAM; // TCP stream-sockets
+	hints.ai_flags = AI_PASSIVE;     // заполните мой IP-адрес за меня
 
-	memset(&hints, 0, sizeof(hints));
-
-	hints.ai_family   = AF_INET;
-	hints.ai_socktype = SOCK_STREAM;
-	hints.ai_flags    = AI_PASSIVE;
-	if (getaddrinfo(_host.c_str(), _port.c_str(), &hints, &servinfo) != 0)
-		Server::Fatal("Error: getaddrinfo");
-
-	addrinfo	*p;
-	int			sock;
-	int			yes = 1;
-
-	for (p = servinfo; p != NULL; p = p->ai_next) {
-		sock = socket(p->ai_family, p->ai_socktype, p->ai_protocol);
-		if (sock == -1)
-			continue;
-		if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) == -1)
-		{
-			close(sock);
-			freeaddrinfo(servinfo);
-			Server::Fatal("Error: setsockopt");
-		}
-		if (bind(sock, p->ai_addr, p->ai_addrlen) == -1)
-		{
-			close(sock);
-			continue;
-		}
-		break;
+	if (getaddrinfo(this->_host ? this->_host->c_str() : nullptr, this->_port.c_str(), &hints, &serverInfo) != 0) {
+		throw std::runtime_error("getaddrinfo error");
 	}
-	freeaddrinfo(servinfo);
-	if (p == NULL)
-		Server::Fatal("Error: failed to find address");
-	if (listen(sock, MAX_CONNECTION) == -1)
-		Server::Fatal("Error: listen");
-
-	_sock = sock;
+	for (rp = serverInfo; rp != nullptr; rp = rp->ai_next) {
+		newSocketFd = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol);
+		if (newSocketFd == -1) {
+			continue;
+		}
+		if (setsockopt(newSocketFd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) == -1) {
+			throw std::runtime_error("setsockopt error");
+		}
+		if (bind(newSocketFd, rp->ai_addr, rp->ai_addrlen) == 0) {
+			break; // Success
+		}
+		close(newSocketFd);
+	}
+	if (rp == nullptr) {
+		throw std::runtime_error("bind error");
+	}
+	freeaddrinfo(serverInfo); /// освобождаем связанный список
+	this->_socketFd = newSocketFd;
 }
 
-void Server::start(void){
-	pollfd	newPollfd = {_sock, POLLIN, 0};
-	pollfd	ptrPollfd;
+/**
+ * listen сокета, создание pollfd структуры для этого сокета,
+ * добавление в вектор структур, и главный цикл
+ */
+void Server::start() {
+	if (listen(this->_socketFd, 10) == -1) {
+		throw std::runtime_error("listen error");
+	}
+	pollfd sPollfd = {this->_socketFd, POLLIN, 0};
+	if (fcntl(this->_socketFd, F_SETFL, O_NONBLOCK) == -1) {
+		throw std::runtime_error("fcntl error");
+	}
+	this->_fds.push_back(sPollfd);
+	std::vector<pollfd>::iterator it;
+	while (true) {
+		it = this->_fds.begin();
+		if (poll(&(*it), this->_fds.size(), -1) == -1) {
+			throw std::runtime_error("poll error");
+		}
+		///после этого нужно что-то сделать с тем, что нам пришло после poll
+		this->acceptProcess();
+	}
+}
 
-//	_Commander = new Command(this);
-	if (fcntl(_sock, F_SETFL, O_NONBLOCK) == -1)
-	 	Server::Fatal("Error: poll: fcntl");
-	
-	std::vector<pollfd>::iterator	iterPoll;
-	_pollfds.push_back(newPollfd);
+Server::~Server() {
 
+}
 
+Client *Server::findUserByFd(int fd) {
+	for (unsigned int i = 0; i < this->_users.size(); i++) {
+		if (fd == this->_users[i]->getSockFd()) {
+			return this->_users[i];
+		}
+	}
+	return nullptr;
+}
 
-	std::cout << "Server created!" << std::endl;
+void Server::acceptProcess() {
+	pollfd nowPollfd;
 
-	while (1)
-	{
-		iterPoll = _pollfds.begin();
-		if (poll(&(*iterPoll), _pollfds.size(), -1) == -1)
-			Server::Fatal("Error: poll");
-		for (std::vector<pollfd>::iterator itPollfd = _pollfds.begin(); itPollfd != _pollfds.end(); itPollfd++)
-		{
-			ptrPollfd = *itPollfd;
+	for (unsigned int i = 0; i < this->_fds.size(); i++) {
+		nowPollfd = this->_fds[i];
 
-			if ((ptrPollfd.revents & POLLHUP) == POLLHUP){
-				std::vector<Client *>::iterator	itClient = _clients.begin();
-        	    advance(itClient, distance(_pollfds.begin(), itPollfd) - 1);
+		if ((nowPollfd.revents & POLLIN) == POLLIN) { ///модно считать данные
 
-				if (_clients.empty())
-					break;
-        	    break;
-        	}
-
-			if ((ptrPollfd.revents & POLLIN) == POLLIN)
-			{
-				if (ptrPollfd.fd == _sock)
-				{
-					std::string str("Entered:\nPASS <password>\nNICK <nickname>\nUSER <username> <flags> <unused> <realname>\n\r");
-						if (send(createClient(), str.c_str(), str.length(), 0) == -1)
-							Server::Fatal("Error: send");
-					break ;
+			if (nowPollfd.fd == this->_socketFd) { ///accept
+				int clientSocket;
+				sockaddr_in clientAddr;
+				memset(&clientAddr, 0, sizeof(clientAddr));
+				socklen_t socketLen = sizeof(clientAddr);
+				clientSocket = accept(this->_socketFd, (sockaddr *) &clientAddr, &socketLen);
+				if (clientSocket == -1) {
+					continue;
 				}
-				else
-				{
-					std::vector<Client *>::iterator	itClient = _clients.begin();
-					advance(itClient, distance(_pollfds.begin(), itPollfd) - 1);
-					recvMessage(*itClient);
-
-					std::cout << "Client: " << (*itClient)->getNick() << " | Message: " << (*itClient)->getMessage() << "\n";
-					std::cout << "parcer called\n";
-//					Client *tmp = *itClient;
-//					if (isdigit(tmp->getMessage()[0]))
-//						send(atoi(tmp->getMessage().c_str()), tmp->getMessage().c_str(), tmp->getMessage().length(), 0);
-//					send(tmp->getSockFd(), tmp->getMessage().c_str(), tmp->getMessage().length(), 0);
-
-                    parser((*itClient), (*itClient)->getMessage());
-
-//					_Commander->parse((*itClient), (*itClient)->getMessage());
+				pollfd clientPollfd = {clientSocket, POLLIN, 0};
+				this->_fds.push_back(clientPollfd);
+				if (fcntl(clientSocket, F_SETFL, O_NONBLOCK) == -1) {
+					throw std::runtime_error("fcntl error");
+				}
+				std::cout << "cs:" << clientSocket << std::endl;
+				std::cout << "sfd:" << this->_socketFd << std::endl;
+				Client *user = new Client(clientSocket);
+				this->_users.push_back(user);
+			} else { ///нужно принять данные не с основного сокета, который мы слушаем(клиентского?)
+				try {
+					std::cout << "fd: " << nowPollfd.fd << std::endl;
+					Client *curUser = findUserByFd(nowPollfd.fd);
+					this->parser(curUser, recvMessage(curUser->getSockFd()));
+				} catch (std::runtime_error &e) {
+					std::cout << e.what() << std::endl;
 				}
 			}
 		}
+		if ((nowPollfd.revents & POLLHUP) == POLLHUP) { ///кто-то оборвал соединение
+			Client *user = findUserByFd(nowPollfd.fd);
+			if (user == nullptr) {
+				continue;
+			}
+			this->removeUser(user);
+			close(_fds[i].fd);
+			this->_fds.erase(_fds.begin() + i);
+		}
 	}
 }
 
-void	Server::recvMessage(Client *client){
-	ssize_t		byteRecved;
-	char		message[100];
+void Server::removeUser(Client *user) {
+	for (unsigned int i = 0; i != this->_users.size(); i++) {
+		if (user == _users[i]) {
+//			users[i]->leaveAllChannels();
+			_users.erase(_users.begin() + i);
+			break;
+		}
+	}
+}
 
-	client->clearMessage();
+/**
+ * функция для получения сообщения
+ * @param fd фдшник, с которого мы получаем сообщение
+ */
+std::string Server::recvMessage(int fd) {
+	char message[512];
+	ssize_t recvByte;
 	memset(message, '\0', sizeof(message));
-	while (!std::strstr(message, "\r\n"))
-	{
-		memset(message, '\0', sizeof(message));
-		byteRecved = recv(client->getSockFd(), message, sizeof(message), 0);
-		if (byteRecved <= 0)
-			break ;
-		client->appendMessage(message);
+	recvByte = recv(fd, message, sizeof(message), 0);
+	if (recvByte <= 0) {
+		throw std::runtime_error("recv < 0");
 	}
+	std::cout << "from fd" << fd << ": " << message << "" << std::endl;
+	return (message);
 }
 
 
-int		Server::createClient(){
-	int				client_d = 0;
-	sockaddr_in		client_addr;
-	socklen_t		s_size;
+/**
+ * находит какую команду вызывает Юзер и выполняет ее
+ * @param user указатель на юзера, который отправил сообщение
+ */
+//void Server::commandProcess(Client &user, const std::string &message) {
+//
+//	std::cout << "From fd" << user.getSockFd() << ": " << message << std::endl;
+//	sendMessage("!!!" + message, user.getSockFd());
+//}
 
-	memset(&client_addr, 0, sizeof(client_addr));
-	s_size = sizeof(client_addr);
-	if ((client_d = accept(_sock, (sockaddr *) &client_addr, &s_size)) == -1)
-		Server::Fatal("Error: accept");
-
-	pollfd	newPollfd = {client_d, POLLIN, 0};
-	_pollfds.push_back(newPollfd);
-	if (fcntl(client_d, F_SETFL, O_NONBLOCK) == -1)
-	 	Server::Fatal("Error: poll: fcntl");
-	std::cout << "New client generated\n";
-	Client	*newClient = new Client(client_d, ntohs(client_addr.sin_port), this, inet_ntoa(client_addr.sin_addr));
-	_clients.push_back(newClient);
-
-	std::cout << "New client " << newClient->getNick() << "@" << newClient->getHost() << ":" << newClient->getPort() << std::endl;
-	return client_d;
-}
-
-void Server::Fatal(std::string str){
-	std::cerr << str << std::endl;
-	exit(1);
-}
 
 void Server::parser(Client *client, std::string msg) {
 
@@ -209,6 +209,8 @@ void Server::parser(Client *client, std::string msg) {
 				listExec(*client, args);
 			else if (args[0] == "PRIVMSG" || args[0] == "privmsg")
 				privmsgExec(*client, args);
+			else if (args[0] == "PING" || args[0] == "ping")
+				pingExec(*client, args);
 			else if (args[0] == "TOPIC" || args[0] == "topic")
 				topicExec(*client, args);
 

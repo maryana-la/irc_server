@@ -151,6 +151,10 @@ void Server::privmsgExec(Client &client, std::vector<std::string> &args) {
 	}
 }
 
+void Server::pingExec(Client &client, std::vector<std::string> &args){
+	sendMessage(":SERVNAME PONG " + args[1], client.getSockFd());
+}
+
 void Server::modeExec(Client &client, std::vector<std::string> &args){
 
 
