@@ -12,12 +12,12 @@ void Server::passExec(Client &client, std::vector<std::string> &args) {
 	/* check amount of args provided */
 	if (args.size() != 2) {
 		std::string comm = "PASS";
-		throw static_cast<std::string>(ERR_NEEDMOREPARAMS(comm)); //todo maybe kill client
+		throw static_cast<std::string>(ERR_NEEDMOREPARAMS(client.getNick(), comm)); //todo maybe kill client
 	}
 
 	/* check is registered */
 	if (client.getRegisterStatus())
-		throw static_cast<std::string>(ERR_ALREADYREGISTRED);
+		throw static_cast<std::string>(ERR_ALREADYREGISTRED(client.getNick()));
 
 	/* if  password is correct */
 	if (args[1] == _pass) {
@@ -73,12 +73,12 @@ void Server::userExec(Client &client, std::vector<std::string> &args) {
 	/* check if number of args is ok */
 	if (args.size() != 5) {
 		std::string comm = "USER";
-		throw static_cast<std::string>(ERR_NEEDMOREPARAMS(comm));
+		throw static_cast<std::string>(ERR_NEEDMOREPARAMS(client.getNick(), comm));
 	}
 
 	/* check if already registered */
 	if (client.getRegisterStatus())
-		throw static_cast<std::string>(ERR_ALREADYREGISTRED);
+		throw static_cast<std::string>(ERR_ALREADYREGISTRED(client.getNick()));
 
 	//todo check if stings are valid characters
 

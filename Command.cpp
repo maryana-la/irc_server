@@ -4,7 +4,7 @@ void Server::joinExec(Client &client, std::vector<std::string> &args) {
 	/* check if number of args is ok */
 	if (args.size() < 2 || args.size() > 3) {
 		std::string comm = "JOIN";
-		throw static_cast<std::string>(ERR_NEEDMOREPARAMS(comm));
+		throw static_cast<std::string>(ERR_NEEDMOREPARAMS(client.getNick(), comm));
 	}
 
 	/* if client is not registered yet */
@@ -23,7 +23,9 @@ void Server::joinExec(Client &client, std::vector<std::string> &args) {
 	std::vector<std::string>::iterator chIte = channels.end();
 
 	for (int i = 0; chIt != chIte; chIt++, i++) {
-		if (checkValidChannelName(channels[i])) {
+		if (!checkValidChannelName(channels[i]))
+			throw ERR_NOSUCHCHANNEL(client.getNick(), channels[i]);
+		else {
 			std::vector<Channel *>::iterator it = _channels.begin();
 			std::vector<Channel *>::iterator ite = _channels.end();
 
@@ -34,7 +36,7 @@ void Server::joinExec(Client &client, std::vector<std::string> &args) {
 					//todo check if invite only/invitation
 					if ((*it)->getKeyStatus()) {
 						if (keys.size() <= i || (*it)->getKey() != keys[i])
-							throw static_cast<std::string>(ERR_BADCHANNELKEY(channels[i]));
+							throw static_cast<std::string>(ERR_BADCHANNELKEY(client.getNick(), channels[i]));
 					}
 					(*it)->addUser(client);
 					sendTopic(client, channels[i]);
@@ -46,7 +48,7 @@ void Server::joinExec(Client &client, std::vector<std::string> &args) {
 			/* if channel is not found */
 			if (it == ite) {
 				if (_channels.size() == _maxNumberOfChannels)
-					throw static_cast<std::string>(ERR_TOOMANYCHANNELS(channels[i]));
+					throw static_cast<std::string>(ERR_TOOMANYCHANNELS(client.getNick(),channels[i]));
 
 				/* create new Channel and set attributes */
 				Channel *tmp;
@@ -93,26 +95,25 @@ void Server::sendTopic(Client &client, const std::string& channelName) {
 void Server::topicExec(Client &client, std::vector<std::string> &args) {
 	/* check number of args */
 	if (args.size() < 2 || args.size() > 3)
-		throw static_cast<std::string>(ERR_NEEDMOREPARAMS(args[0]));
+		throw static_cast<std::string>(ERR_NEEDMOREPARAMS(client.getNick(), args[0]));
 
-	/* just print topic */
-	if (args.size() == 2) {
-		Channel* tmp = findChannel(args[1]);
-		if (tmp == NULL)
-			throw static_cast<std::string>("Topic: No such channel\n");
+	Channel* tmp = findChannel(args[1]);
+	if (tmp == NULL)
+		throw static_cast<std::string>(ERR_NOTONCHANNEL(client.getNick(), args[1]));
+
+	if (args.size() == 2) {  /* just print topic */
 		if (tmp->getTopic().empty())
-			sendMessage (RPL_NOTOPIC(tmp->getChannelName()), client.getSockFd());
+			sendMessage (RPL_NOTOPIC(client.getNick(),tmp->getChannelName()), client.getSockFd());
 		else
-			sendMessage(RPL_TOPIC(tmp->getChannelName(), tmp->getTopic()), client.getSockFd());
+			sendMessage(RPL_TOPIC(client.getNick(),tmp->getChannelName(), tmp->getTopic()), client.getSockFd());
 	}
+	else {  /* set new topic */
+		if (!tmp->isChannelUser(&client))
+			throw static_cast<std::string>(ERR_NOTONCHANNEL(client.getNick(),tmp->getChannelName()));
 
-	/* set new topic */
-//	ERR_CHANOPRIVSNEEDED
-//	442     ERR_NOTONCHANNEL
-//	"<channel> :You're not on that channel"
-//
-//	- Возвращается сервером, как только клиент пытается
-//	выполнить команду канала, на котором отсутствует.
+		//todo add check for operators rights
+		tmp->setTopic(args[2]);
+	}
 }
 
 
@@ -122,9 +123,9 @@ void Server::privmsgExec(Client &client, std::vector<std::string> &args) {
 	
 	
 	if(args[1].empty())
-		throw static_cast<std::string>(ERR_NORECIPIENT((std::string)"PRIVMSG"));
+		throw static_cast<std::string>(ERR_NORECIPIENT(client.getNick(), args[0]));
 	if(args[2].empty())
-		throw static_cast<std::string>(ERR_NOTEXTTOSEND);
+		throw static_cast<std::string>(ERR_NOTEXTTOSEND(client.getNick()));
 
 	std::string message;
 	for(unsigned int i=2; i<args.size(); i++){
@@ -143,7 +144,7 @@ void Server::privmsgExec(Client &client, std::vector<std::string> &args) {
 				channelDest->sendMsgToChan(":" + client.getNick() + " PRIVMSG " + (*it) + " :" + message + "\r\n");
 			}
 			else
-				throw static_cast<std::string>(ERR_CANNOTSENDTOCHAN((*it)));
+				throw static_cast<std::string>(ERR_CANNOTSENDTOCHAN(client.getNick(),(*it)));
 			return;
 		}
 

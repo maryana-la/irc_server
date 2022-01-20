@@ -33,7 +33,7 @@ bool 		Channel::getKeyStatus() const { return _key_flag; }
 void Channel::addUser(Client &user) {
 	/* check is channel is not full */
 	if (_numUsers == _maxUsers)
-		throw ERR_CHANNELISFULL(_name);
+		throw ERR_CHANNELISFULL(user.getNick(), _name);
 
 	/* check if user is banned (nickname, username, host) */
 	std::vector<Client *>::iterator it = _banned.begin();
@@ -42,13 +42,17 @@ void Channel::addUser(Client &user) {
 		if ((*it)->getNick() == user.getNick() &&
 			(*it)->getUsername() == user.getUsername() &&
 			(*it)->getHost() == user.getHost())
-			break;
+			throw ERR_BANNEDFROMCHAN(user.getNick(), _name);
 	}
-	if (it != ite)
-		throw ERR_BANNEDFROMCHAN(_name);
 
+	/* check if already in group */
+	std::vector<Client *>::iterator itU = _users.begin();
+	std::vector<Client *>::iterator iteU = _users.end();
+	for (; itU != iteU; itU++) {
+		if ((*itU)->getNick() == user.getNick())
+			return;
+	}
 	/* add user */
-	//todo check if user already exists
 	_users.push_back(&user);
 	_numUsers++;
 }
@@ -73,6 +77,17 @@ std::string Channel::sendUserList() {
 bool Channel::isOperator(Client *client) {
 	std::vector<Client *>::iterator it = _operators.begin();
 	std::vector<Client *>::iterator ite = _operators.end();
+
+	for (; it != ite; it++) {
+		if (*it == client)
+			return true;
+	}
+	return false;
+}
+
+bool Channel::isChannelUser (Client *client) {
+	std::vector<Client *>::iterator it = _users.begin();
+	std::vector<Client *>::iterator ite = _users.end();
 
 	for (; it != ite; it++) {
 		if (*it == client)

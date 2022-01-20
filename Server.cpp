@@ -25,7 +25,7 @@ int		Server::getId(int i){
 	return (_id[i]);
 }
 
-void	Server::createSocket(void){
+void	Server::createSocket(){
 	addrinfo	hints;
 	addrinfo	*servinfo;
 
@@ -41,7 +41,7 @@ void	Server::createSocket(void){
 	int			sock;
 	int			yes = 1;
 
-	for (p = servinfo; p != nullptr; p = p->ai_next) {
+	for (p = servinfo; p != NULL; p = p->ai_next) {
 		sock = socket(p->ai_family, p->ai_socktype, p->ai_protocol);
 		if (sock == -1)
 			continue;
@@ -59,7 +59,7 @@ void	Server::createSocket(void){
 		break;
 	}
 	freeaddrinfo(servinfo);
-	if (p == nullptr)
+	if (p == NULL)
 		Server::Fatal("Error: failed to find address");
 	if (listen(sock, MAX_CONNECTION) == -1)
 		Server::Fatal("Error: listen");
@@ -148,7 +148,7 @@ void	Server::recvMessage(Client *client){
 }
 
 
-int		Server::createClient(void){
+int		Server::createClient(){
 	int				client_d = 0;
 	sockaddr_in		client_addr;
 	socklen_t		s_size;
@@ -173,26 +173,6 @@ int		Server::createClient(void){
 void Server::Fatal(std::string str){
 	std::cerr << str << std::endl;
 	exit(1);
-}
-
-
-Client::Client(int sockFd, int port, Server *serv, char *host) : _sockFd(sockFd), _port(port), _host(host){
-	_nickname = "";
-	_realname = "";
-	_awayMessage = "";
-    _passValid = false;
-	_id = serv->getId(0) + serv->getId(1) + serv->getId(2);
-}
-
-void		Client::clearMessage(void){
-	_message.clear();
-}
-
-void			Client::appendMessage(std::string message)
-{
-	_message.append(message);
-	_message.erase(_message.find_last_not_of("\r\n") + 1);
-	_message.append("\n");
 }
 
 void Server::parser(Client *client, std::string msg) {
@@ -222,6 +202,8 @@ void Server::parser(Client *client, std::string msg) {
 				listExec(*client, args);
 			else if (args[0] == "PRIVMSG" || args[0] == "privmsg")
 				privmsgExec(*client, args);
+			else if (args[0] == "TOPIC" || args[0] == "topic")
+				topicExec(*client, args);
 
 
 

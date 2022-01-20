@@ -10,4 +10,5 @@ add_executable(ft_irc
         Utils.cpp
         registrationCMD.cpp
         Channel.cpp
+        Client.cpp
         )

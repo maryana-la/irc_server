@@ -53,10 +53,10 @@ std:: vector<std::string> split_args(const std::string& line) {
 int checkValidChannelName(const std::string &name) {
 	if (name.length() > 50 ||
 			(name[0] != '&' && name[0] != '#' && name[0] != '+' && name[0] != '!'))
-		throw ERR_NOSUCHCHANNEL(name);
+		return 0;
 	for (int i = 0; i < name.length(); i++) {
 		if (isspace(name[i]) || iscntrl(name[i]) || name[i] == ',')
-			throw ERR_NOSUCHCHANNEL(name);
+			return 0;
 	}
 	return 1;
 }

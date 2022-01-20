@@ -45,30 +45,28 @@ private:
     bool    _passValid;
     bool    _registered;
 
-
 public:
-	Client(int sockFd, int port, Server *serv, char *host = nullptr);
-	~Client(void) {};
+	Client(int sockFd, int port, Server *serv, char *host = NULL);
+	~Client();
 
+    int			getSockFd() const;
+    int			getPort() const;
+    std::string getNick() const;
+	std::string getUsername() const;
+	std::string	getHost() const;
+	std::string getRealname() const;
+	std::string getMessage() const;
+    bool 		getRegisterStatus() const;
+	bool 		getPassStatus() const;
+    bool 		checkUserStatus() const;
 
-    int			getSockFd()			{ return _sockFd; }
-    int			getPort() 			{ return _port; }
-    std::string getNick() 			{ return _nickname; }
-	std::string getUsername()		{ return _username; }
-	std::string	getHost() 			{ return _host; }
-	std::string getRealname() 		{ return _realname; }
-	std::string getMessage() 		{ return _message; }
-    bool 		getRegisterStatus() { return _registered; }
-	bool 		getPassStatus() 	{ return _passValid; }
-    bool 		checkUserStatus() 	{ return((_username[0] && _host[0] && _servername[0] && _realname[0])); }
-
-    void setNick(const std::string &name) 			{ _nickname = name; }
-	void setUserName (const std::string &name) 		{ _username = name; }
-	void setHostName (const std::string &name) 		{ _host = name; }
-	void setServerName (const std::string &name) 	{ _servername = name; }
-	void setRealName (const std::string &name) 		{ _realname = name; }
-	void setPassStatus()							{ _passValid = true; }
-	void setRegisterStatus()						{ _registered = true; }
+    void setNick(const std::string &name);
+	void setUserName (const std::string &name);
+	void setHostName (const std::string &name);
+	void setServerName (const std::string &name);
+	void setRealName (const std::string &name);
+	void setPassStatus();
+	void setRegisterStatus();
 
 	void		clearMessage();
 	void		appendMessage(std::string message);
@@ -88,6 +86,7 @@ private:
 	bool 					_key_flag;
 
 	Channel() {}
+
 public:
 	Channel(const std::string& channel_name, Client &user);
 	Channel(const std::string& channel_name, const std::string& key, Client &user);
@@ -112,6 +111,7 @@ public:
 
 	std::string sendUserList();
 	bool isOperator(Client *client);
+	bool isChannelUser (Client *client);
 
 	void sendMsgToChan (const std::string &message);
 };
@@ -160,9 +160,6 @@ public:
 
 	void privmsgExec(Client &client, std::vector<std::string> &args);
 	void modeExec(Client &client, std::vector<std::string> &args);
-
-
-
 
 
 
