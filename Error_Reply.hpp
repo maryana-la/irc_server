@@ -55,6 +55,7 @@
 #define ERR_UMODEUNKNOWNFLAG						": IRC 501 * :Unknown MODE flag\r\n"
 #define ERR_USERSDONTMATCH							": IRC 502 * :Cant change mode for other users\r\n"
 
+
 /*
  * unknown comms
  */

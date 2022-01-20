@@ -190,6 +190,13 @@ void Server::parser(Client *client, std::string msg) {
 		{
 			std::vector<std::string> args = split_args(common[i]);
 			// todo replace with switch case
+
+			/* if client is nor registered, cannot execute any command */
+			if (args[0] != "PASS" || args[0] != "pass" || args[0] != "USER" || args[0] != "user" || args[0] != "NICK" || args[0] != "nick") {
+				if (!client->getRegisterStatus())
+					throw static_cast<std::string>(ERR_NOTREGISTERED);
+			}
+
 			if (args[0] == "PASS" || args[0] == "pass")
 				passExec(*client, args);
 			else if (args[0] == "USER" || args[0] == "user")
