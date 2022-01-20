@@ -1,112 +1,15 @@
 #include "Server.hpp"
-void sendmotd(Client &client) {
-
-	sendMessage(":SERV 001 Hello :Welcome to the Internet Relay Network borja!borja@polaris.cs.uchicago.edu", client.getSockFd() );
-	sendMessage((std::string) (":SERVNAME 375 " + client.getNick() + " :- " + "SERVNAME" + " Message of the day - \r\n"), client.getSockFd());
-	sendMessage((":SERVNAME 372 " + client.getNick() + " :- " + " commet place " + "\r\n"), client.getSockFd());
-	sendMessage((":SERVNAME 375 " + client.getNick() + ":End of MOTD command\r\n"), client.getSockFd());
-	
-}
-void Server::passExec(Client &client, std::vector<std::string> &args) {
-
-    /* check amount of args provided */
-    if (args.size() != 2) {
-		std::string comm = "PASS";
-		throw ERR_NEEDMOREPARAMS(comm); //todo maybe kill client
-    }
-
-    /* check is registered */
-    if (client.getRegisterStatus())
-        throw ERR_ALREADYREGISTRED();
-
-    /* if  password is correct */
-    if (args[1] == _pass) {
-        client.setPassStatus();
-        sendMessage("password correct\n", client.getSockFd());
-    } else { /* if password is not correct */
-        sendMessage("password is not correct\n", client.getSockFd());
-        return; // todo maybe kill client?
-    }
-
-    /* check is USER & NICK are already filled */
-    if (client.checkUserStatus() && !client.getNick().empty()) {
-		client.setRegisterStatus();
-		sendMessage(":SERV" + RPL_WELCOME(client.getNick()), client.getSockFd());
-		sendMessage("client registered\n", client.getSockFd());
-		sendmotd(client);
-		
-	}
-}
-
-void Server::nickExec(Client &client, std::vector<std::string> &args) {
-
-	/* check amount of args provided */
-	if (args.size() < 2 || args.size() > 3) {
-		throw ERR_NONICKNAMEGIVEN();
-	}
-
-	/* check if nickname is a valid string */
-	if (args[1].find_first_not_of(NICK_VALIDSET) != std::string::npos || args[1].size() > 9)
-		throw ERR_ERRONEUSNICKNAME(args[1]);
-
-	/* check if such nick already exists */
-	std::vector<Client *>::iterator it = _clients.begin();
-	std::vector<Client *>::iterator ite = _clients.end();
-	for (; it != ite; it++) {
-		if (args[1] == (*it)->getNick() && !client.getRegisterStatus())
-			throw ERR_NICKCOLLISION(args[1]);
-		else if (args[1] == (*it)->getNick() && client.getRegisterStatus())
-			throw ERR_NICKNAMEINUSE(args[1]);
-	}
-
-	/* set nickname */
-	client.setNick(args[1]);
-
-	/* check if USER & PASS commands are already done succesfully */
-	if (client.checkUserStatus() && client.getPassStatus()) {
-		client.setRegisterStatus();
-		sendMessage("client registered\n", client.getSockFd());
-		sendMessage(":SERV" + RPL_WELCOME(client.getNick()), client.getSockFd());
-		sendmotd(client);
-	}
-}
-
-
-void Server::userExec(Client &client, std::vector<std::string> &args) {
-
-	/* check if number of args is ok */
-	if (args.size() != 5) {
-		std::string comm = "USER";
-		throw ERR_NEEDMOREPARAMS(comm);
-	}
-
-	/* check if already registered */
-	if (client.getRegisterStatus())
-		throw ERR_ALREADYREGISTRED();
-
-	//todo check if stings are valid characters
-
-	client.setUserName(args[1]);
-	client.setHostName(args[2]);
-	client.setServerName(args[3]);
-	client.setRealName(args[4]);
-
-	/* check if NICK & PASS commands are already done succesfully */
-	if (!client.getNick().empty() && client.getPassStatus()) {
-		client.setRegisterStatus();
-		sendMessage(":SERV" + RPL_WELCOME(client.getNick()), client.getSockFd());
-		sendMessage("client registered\n", client.getSockFd());
-		sendmotd(client);
-	}
-}
-
 
 void Server::joinExec(Client &client, std::vector<std::string> &args) {
 	/* check if number of args is ok */
 	if (args.size() < 2 || args.size() > 3) {
 		std::string comm = "JOIN";
-		throw ERR_NEEDMOREPARAMS(comm);
+		throw static_cast<std::string>(ERR_NEEDMOREPARAMS(comm));
 	}
+
+	/* if client is not registered yet */
+	if (!client.getRegisterStatus())
+		return;
 
 	/* split channels and keys by ',' */
 	std::vector<std::string> channels;
@@ -131,10 +34,11 @@ void Server::joinExec(Client &client, std::vector<std::string> &args) {
 					//todo check if invite only/invitation
 					if ((*it)->getKeyStatus()) {
 						if (keys.size() <= i || (*it)->getKey() != keys[i])
-							throw ERR_BADCHANNELKEY(channels[i]);
+							throw static_cast<std::string>(ERR_BADCHANNELKEY(channels[i]));
 					}
 					(*it)->addUser(client);
-					sendMessage("user is added to channel\n", client.getSockFd());
+					sendTopic(client, channels[i]);
+					sendUsers(client, *(*it));
 					break;
 				}
 			}
@@ -142,7 +46,7 @@ void Server::joinExec(Client &client, std::vector<std::string> &args) {
 			/* if channel is not found */
 			if (it == ite) {
 				if (_channels.size() == _maxNumberOfChannels)
-					throw ERR_TOOMANYCHANNELS(channels[i]);
+					throw static_cast<std::string>(ERR_TOOMANYCHANNELS(channels[i]));
 
 				/* create new Channel and set attributes */
 				Channel *tmp;
@@ -152,12 +56,17 @@ void Server::joinExec(Client &client, std::vector<std::string> &args) {
 				else
 					tmp = new Channel(channels[i], client);
 				_channels.push_back(tmp);
-				std::string msg = "channel " + channels[i] + " created, admin " + client.getNick() + "\n";
-				sendMessage(msg, client.getSockFd());
-				topicShort(client, channels[i]);
+				sendTopic(client, channels[i]);
+				sendUsers(client, *tmp);
 			}
 		}
 	}
+}
+
+void Server::sendUsers(Client &client, Channel &channel) {
+	sendMessage(RPL_NAMREPLY(client.getNick(), channel.getChannelName(),
+							 channel.sendUserList()), client.getSockFd());
+	sendMessage(RPL_ENDOFNAMES(client.getNick(), channel.getChannelName()), client.getSockFd());
 }
 
 void Server::listExec(Client &client, std::vector<std::string> &args) {
@@ -171,10 +80,9 @@ void Server::listExec(Client &client, std::vector<std::string> &args) {
 			sendMessage(msg, client.getSockFd());
 		}
 	}
-
 }
 
-void Server::topicShort(Client &client, const std::string& channelName) {
+void Server::sendTopic(Client &client, const std::string& channelName) {
 	std::vector<std::string> forTopic;
 	forTopic.push_back("TOPIC");
 	forTopic.push_back(channelName);
@@ -185,18 +93,26 @@ void Server::topicShort(Client &client, const std::string& channelName) {
 void Server::topicExec(Client &client, std::vector<std::string> &args) {
 	/* check number of args */
 	if (args.size() < 2 || args.size() > 3)
-		throw ERR_NEEDMOREPARAMS(args[0]);
+		throw static_cast<std::string>(ERR_NEEDMOREPARAMS(args[0]));
 
 	/* just print topic */
 	if (args.size() == 2) {
 		Channel* tmp = findChannel(args[1]);
 		if (tmp == NULL)
-			throw "Topic: No such channel\n";
+			throw static_cast<std::string>("Topic: No such channel\n");
 		if (tmp->getTopic().empty())
 			sendMessage (RPL_NOTOPIC(tmp->getChannelName()), client.getSockFd());
 		else
-			sendMessage(tmp->getTopic(), client.getSockFd());
+			sendMessage(RPL_TOPIC(tmp->getChannelName(), tmp->getTopic()), client.getSockFd());
 	}
+
+	/* set new topic */
+//	ERR_CHANOPRIVSNEEDED
+//	442     ERR_NOTONCHANNEL
+//	"<channel> :You're not on that channel"
+//
+//	- Возвращается сервером, как только клиент пытается
+//	выполнить команду канала, на котором отсутствует.
 }
 
 
@@ -206,9 +122,9 @@ void Server::privmsgExec(Client &client, std::vector<std::string> &args) {
 	
 	
 	if(args[1].empty())
-		throw ERR_NORECIPIENT((std::string)"PIVMSG");
+		throw static_cast<std::string>(ERR_NORECIPIENT((std::string)"PRIVMSG"));
 	if(args[2].empty())
-		throw ERR_NOTEXTTOSEND();
+		throw static_cast<std::string>(ERR_NOTEXTTOSEND);
 
 	std::string message;
 	for(unsigned int i=2; i<args.size(); i++){
@@ -227,7 +143,7 @@ void Server::privmsgExec(Client &client, std::vector<std::string> &args) {
 				channelDest->sendMsgToChan(":" + client.getNick() + " PRIVMSG " + (*it) + " :" + message + "\r\n");
 			}
 			else
-				throw ERR_CANNOTSENDTOCHAN((*it));
+				throw static_cast<std::string>(ERR_CANNOTSENDTOCHAN((*it)));
 			return;
 		}
 
@@ -237,10 +153,16 @@ void Server::privmsgExec(Client &client, std::vector<std::string> &args) {
 			return;
 		}
 		else
-			throw ERR_NOSUCHNICK(args[1]);
+			throw static_cast<std::string>(ERR_NOSUCHNICK(args[1]));
 	}
-	
 
+//	class pass_mismatch : public std::exception
+//	{
+//		const char *what() const throw()
+//		{
+//			return ":server 464 pass :Password incorrect\r\n";
+//		}
+//	};
 
 }
 

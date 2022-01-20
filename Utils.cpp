@@ -82,13 +82,4 @@ Channel *Server::findChannel(const std::string &channelName){
 }
 
 
-void Channel::sendMsgToChan (const std::string &message){
-
-	std::vector<Client*>::iterator it= _users.begin();
-	std::vector<Client*>::iterator ite= _users.end();
-	for(; it !=ite; it++){
-		sendMessage(message, (*it)->getSockFd());
-	}
-}
-
 

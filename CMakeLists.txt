@@ -8,4 +8,6 @@ add_executable(ft_irc
         Server.cpp
         Command.cpp
         Utils.cpp
+        registrationCMD.cpp
+        Channel.cpp
         )

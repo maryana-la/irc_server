@@ -89,62 +89,30 @@ private:
 
 	Channel() {}
 public:
-	Channel(const std::string& channel_name, Client &user) : _name(channel_name) {
-		_key = "";
-		_topic = "";
-		_numUsers = 1;
-		_maxUsers = 30;
-		_users.push_back(&user);
-		_operators.push_back(&user);
-		_inviteOnly_flag = false;
-		_key_flag = false;
-	};
+	Channel(const std::string& channel_name, Client &user);
+	Channel(const std::string& channel_name, const std::string& key, Client &user);
 
-	Channel(const std::string& channel_name, const std::string& key, Client &user) :
-			_name(channel_name), _key(key) {
-		_topic = "";
-		_numUsers = 1;
-		_maxUsers = 30;
-		_users.push_back(&user);
-		_operators.push_back(&user);
-		_inviteOnly_flag = false;
-		_key_flag = true;
-	}
+	/*
+	 *  GETTERS
+	 */
+	std::string getChannelName() const;
+	std::string getTopic() const;
+	std::string getKey() const;
+	int 		getNumUsers() const;
+	int			getMaxUsers() const;
+	bool 		getKeyStatus() const;
 
-	std::string getChannelName() const { return _name; }
-	std::string getTopic() const { return _topic; };
-	std::string getKey() const { return _key; };
-	int 		getNumUsers() const { return _numUsers; }
-	int			getMaxUsers() const { return _maxUsers; }
-	bool 		getKeyStatus() const { return _key_flag; }
+	/*
+	 * OTHER FUNCTIONS
+	 */
+	void setTopic (const std::string &topic);
 
+	void addUser(Client &user);
+	void addOperator(Client &user);
 
-	void addUser(Client &user) {
-		/* check is channel is not full */
-		if (_numUsers == _maxUsers)
-			throw ERR_CHANNELISFULL(_name);
+	std::string sendUserList();
+	bool isOperator(Client *client);
 
-		/* check if user is banned (nickname, username, host) */
-		std::vector<Client *>::iterator it = _banned.begin();
-		std::vector<Client *>::iterator ite = _banned.end();
-		for (; it != ite; it++) {
-			if ((*it)->getNick() == user.getNick() &&
-					(*it)->getUsername() == user.getUsername() &&
-					(*it)->getHost() == user.getHost())
-				break;
-		}
-		if (it != ite)
-			throw ERR_BANNEDFROMCHAN(_name);
-
-		/* add user */
-		//todo check if user already exists
-		_users.push_back(&user);
-		_numUsers++;
-	}
-
-	void addOperator(Client &user) { _operators.push_back(&user); }
-
-	void setTopic (const std::string &topic) { _topic = topic; }
 	void sendMsgToChan (const std::string &message);
 };
 
@@ -183,10 +151,13 @@ public:
     void passExec(Client &client, std::vector<std::string> &args);
 	void userExec(Client &client, std::vector<std::string> &args);
 	void nickExec(Client &client, std::vector<std::string> &args);
+
 	void joinExec(Client &client, std::vector<std::string> &args);
 	void listExec(Client &client, std::vector<std::string> &args);
-	void topicShort(Client &client, const std::string& channelName);
+	void sendTopic(Client &client, const std::string& channelName);
 	void topicExec(Client &client, std::vector<std::string> &args);
+	void sendUsers(Client &client,Channel &channel);
+
 	void privmsgExec(Client &client, std::vector<std::string> &args);
 	void modeExec(Client &client, std::vector<std::string> &args);
 
