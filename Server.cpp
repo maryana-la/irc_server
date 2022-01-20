@@ -189,14 +189,13 @@ void Server::parser(Client *client, std::string msg) {
 		try
 		{
 			std::vector<std::string> args = split_args(common[i]);
-			// todo replace with switch case
-
-			/* if client is nor registered, cannot execute any command */
-			if (args[0] != "PASS" || args[0] != "pass" || args[0] != "USER" || args[0] != "user" || args[0] != "NICK" || args[0] != "nick") {
+			/* if client is not registered yet */
+			if (!(args[0] == "PASS" || args[0] == "pass" || args[0] == "USER" || args[0] == "user" || args[0] == "NICK" || args[0] == "nick")) {
 				if (!client->getRegisterStatus())
 					throw static_cast<std::string>(ERR_NOTREGISTERED);
 			}
 
+			// todo replace with switch case
 			if (args[0] == "PASS" || args[0] == "pass")
 				passExec(*client, args);
 			else if (args[0] == "USER" || args[0] == "user")
@@ -219,23 +218,19 @@ void Server::parser(Client *client, std::string msg) {
 			//todo clear memory for args in the end
 			args.clear();
 		}
-		catch (char *msg)
-		{
+		catch (const char *msg) {
 			std::cout << msg << " char\n";
 		}
-		catch (std::string &msg)
-		{
+		catch (std::string &msg) {
 			sendMessage(msg, client->getSockFd());
 			std::cout << msg << " string\n"; //cout to server
 		}
-		catch (std::exception &e)
-		{
+		catch (std::exception &e) {
 			sendMessage(e.what(), client->getSockFd());
 			std::cout << e.what() << "\n"; //cout to server
 			std::cout << msg << " std::exception\n"; //cout to server
 		}
-		catch (...)
-		{
+		catch (...) {
 			std::cout << " catch all\n";
 		}
 	}

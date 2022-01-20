@@ -20,42 +20,43 @@ void Server::joinExec(Client &client, std::vector<std::string> &args) {
 
 	for (int i = 0; chIt != chIte; chIt++, i++) {
 		if (!checkValidChannelName(channels[i]))
-			throw ERR_NOSUCHCHANNEL(client.getNick(), channels[i]);
+			throw static_cast<std::string>(ERR_NOSUCHCHANNEL(client.getNick(), channels[i]));
+		else {
+			std::vector<Channel *>::iterator it = _channels.begin();
+			std::vector<Channel *>::iterator ite = _channels.end();
 
-		std::vector<Channel *>::iterator it = _channels.begin();
-		std::vector<Channel *>::iterator ite = _channels.end();
-
-		/* check if channel already exists */
-		for (; it != ite; it++) {
-			/* if channel found */
-			if ((*it)->getChannelName() == channels[i]) {
-				//todo check if invite only/invitation
-				if ((*it)->getKeyStatus()) {
-					if (keys.size() <= i || (*it)->getKey() != keys[i])
-						throw static_cast<std::string>(ERR_BADCHANNELKEY(client.getNick(), channels[i]));
+			/* check if channel already exists */
+			for (; it != ite; it++) {
+				/* if channel found */
+				if ((*it)->getChannelName() == channels[i]) {
+					//todo check if invite only/invitation
+					if ((*it)->getKeyStatus()) {
+						if (keys.size() <= i || (*it)->getKey() != keys[i])
+							throw static_cast<std::string>(ERR_BADCHANNELKEY(client.getNick(), channels[i]));
+					}
+					(*it)->addUser(client);
+					sendTopic(client, channels[i]);
+					sendUsers(client, *(*it));
+					break;
 				}
-				(*it)->addUser(client);
-				sendTopic(client, channels[i]);
-				sendUsers(client, *(*it));
-				break;
 			}
-		}
 
-		/* if channel is not found */
-		if (it == ite) {
-			if (_channels.size() == _maxNumberOfChannels)
-				throw static_cast<std::string>(ERR_TOOMANYCHANNELS(client.getNick(),channels[i]));
+			/* if channel is not found */
+			if (it == ite) {
+				if (_channels.size() == _maxNumberOfChannels)
+					throw static_cast<std::string>(ERR_TOOMANYCHANNELS(client.getNick(),channels[i]));
 
-			/* create new Channel and set attributes */
-			Channel *tmp;
-			/* check if key was provided */
-			if (keys.size() > i)
-				tmp = new Channel(channels[i], keys[i], client);
-			else
-				tmp = new Channel(channels[i], client);
-			_channels.push_back(tmp);
-			sendTopic(client, channels[i]);
-			sendUsers(client, *tmp);
+				/* create new Channel and set attributes */
+				Channel *tmp;
+				/* check if key was provided */
+				if (keys.size() > i)
+					tmp = new Channel(channels[i], keys[i], client);
+				else
+					tmp = new Channel(channels[i], client);
+				_channels.push_back(tmp);
+				sendTopic(client, channels[i]);
+				sendUsers(client, *tmp);
+			}
 		}
 	}
 }
@@ -67,16 +68,26 @@ void Server::sendUsers(Client &client, Channel &channel) {
 }
 
 void Server::listExec(Client &client, std::vector<std::string> &args) {
-
+//todo check private and hidden attributes
+	sendMessage(RPL_LISTSTART(client.getNick()), client.getSockFd());
 	/* if list without arguments */
 	if (args.size() == 1) {
-		std::vector<Channel*>::iterator it= _channels.begin();
-		std::vector<Channel*>::iterator ite= _channels.end();
-		for(; it !=ite; it++) {
-			std::string msg = (*it)->getChannelName() + " " + (*it)->getTopic() + "\n";
-			sendMessage(msg, client.getSockFd());
+		std::vector<Channel*>::iterator it = _channels.begin();
+		std::vector<Channel*>::iterator ite = _channels.end();
+		for(; it !=ite; it++)
+			sendMessage(RPL_LIST(client.getNick(),(*it)->getChannelName(),  intToString((*it)->getNumUsers()),(*it)->getTopic()), client.getSockFd());
+	}
+	/* if channels specified */
+	else if (args.size() == 2) {
+		std::vector<std::string> channs = split(args[1], ",");
+		std::vector<std::string>::iterator itCh = channs.begin();
+		std::vector<std::string>::iterator iteCh = channs.end();
+		for (; itCh != iteCh; itCh++) {
+			if (Channel* tmp = findChannel(*itCh))
+				sendMessage(RPL_LIST(client.getNick(),tmp->getChannelName(), intToString((tmp)->getNumUsers()), tmp->getTopic()), client.getSockFd());
 		}
 	}
+	sendMessage(RPL_LISTEND(client.getNick()), client.getSockFd());
 }
 
 void Server::sendTopic(Client &client, const std::string& channelName) {
@@ -91,11 +102,9 @@ void Server::topicExec(Client &client, std::vector<std::string> &args) {
 	if (args.size() < 2 || args.size() > 3)
 		throw static_cast<std::string>(ERR_NEEDMOREPARAMS(client.getNick(), args[0]));
 
-	/* check if channel exists */
 	Channel* tmp = findChannel(args[1]);
 	if (tmp == NULL)
 		throw static_cast<std::string>(ERR_NOTONCHANNEL(client.getNick(), args[1]));
-
 
 	if (args.size() == 2) {  /* just print topic */
 		if (tmp->getTopic().empty())
@@ -106,6 +115,7 @@ void Server::topicExec(Client &client, std::vector<std::string> &args) {
 	else {  /* set new topic */
 		if (!tmp->isChannelUser(&client))
 			throw static_cast<std::string>(ERR_NOTONCHANNEL(client.getNick(),tmp->getChannelName()));
+
 		//todo add check for operators rights
 		tmp->setTopic(args[2]);
 	}

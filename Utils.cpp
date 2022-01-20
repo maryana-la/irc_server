@@ -45,6 +45,12 @@ std:: vector<std::string> split_args(const std::string& line) {
 	return args;
 }
 
+std::string	intToString(int num) {
+	std::stringstream ss;
+	ss << num;
+	return(ss.str());
+}
+
 //Channels names are strings (beginning with a '&', '#', '+' or '!' character) of length up to 50 characters.
 //Channel names are case insensitive. The only restriction on a channel name is that it SHALL NOT contain any spaces,
 //a control G (ASCII 7) or a comma (',' which is used as a list item separator by the protocol).
