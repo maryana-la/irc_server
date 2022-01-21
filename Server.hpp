@@ -100,6 +100,8 @@ public:
 	int 		getNumUsers() const;
 	int			getMaxUsers() const;
 	bool 		getKeyStatus() const;
+	std::vector<Client *> getUsersList()const;
+	std::vector<Client *> getOperatorsList()const;
 
 	/*
 	 * OTHER FUNCTIONS
@@ -180,6 +182,7 @@ public:
 	void privmsgExec(Client &client, std::vector<std::string> &args);
 	void modeExec(Client &client, std::vector<std::string> &args);
 	void pingExec(Client &client, std::vector<std::string> &args);
+	void partExec (Client &client, std::vector<std::string> &args);
 
 
 	/*

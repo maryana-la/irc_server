@@ -12,9 +12,7 @@
 
 
 Server::Server(const std::string *host, const std::string &port, const std::string &password)
-		: _socketFd(-1), _host(host), _port(port), _password(password) {
-
-}
+		: _socketFd(-1), _host(host), _port(port), _password(password) {}
 
 /**
  * создание структуры addrinfo, создание сокета и bind
@@ -117,7 +115,7 @@ void Server::acceptProcess() {
 				this->_users.push_back(user);
 			} else { ///нужно принять данные не с основного сокета, который мы слушаем(клиентского?)
 				try {
-					std::cout << "fd: " << nowPollfd.fd << std::endl;
+//					std::cout << "fd: " << nowPollfd.fd << std::endl;
 					Client *curUser = findUserByFd(nowPollfd.fd);
 					this->parser(curUser, recvMessage(curUser->getSockFd()));
 				} catch (std::runtime_error &e) {
@@ -162,17 +160,6 @@ std::string Server::recvMessage(int fd) {
 	std::cout << "from fd" << fd << ": " << message << "" << std::endl;
 	return (message);
 }
-
-
-/**
- * находит какую команду вызывает Юзер и выполняет ее
- * @param user указатель на юзера, который отправил сообщение
- */
-//void Server::commandProcess(Client &user, const std::string &message) {
-//
-//	std::cout << "From fd" << user.getSockFd() << ": " << message << std::endl;
-//	sendMessage("!!!" + message, user.getSockFd());
-//}
 
 
 void Server::parser(Client *client, std::string msg) {

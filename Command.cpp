@@ -129,7 +129,7 @@ void Server::privmsgExec(Client &client, std::vector<std::string> &args) {
 
 	std::string message;
 	for(unsigned int i=2; i<args.size(); i++){
-		message += args[i];
+		message += args[i] + " ";//последний аргумент можен содержать пробелы, поэтому объединяем в одно сообщение
 	}
 	
 	std::vector<std::string> dests = split(args[1],",");
@@ -140,12 +140,16 @@ void Server::privmsgExec(Client &client, std::vector<std::string> &args) {
 
 		if((*it)[0] == '#'){
 			Channel *channelDest = findChannel((*it));
-			if (channelDest){
-				channelDest->sendMsgToChan(":" + client.getNick() + " PRIVMSG " + (*it) + " :" + message + "\r\n");
-			}
-			else
+			if (!channelDest)
 				throw static_cast<std::string>(ERR_CANNOTSENDTOCHAN(client.getNick(),(*it)));
-			return;
+				
+			if(!channelDest->isChannelUser(&client))//todo протестировать проверку что пользователь состоит в канале 
+				throw static_cast<std::string>(ERR_CANNOTSENDTOCHAN(client.getNick(), channelDest->getChannelName()));
+			
+			
+			channelDest->sendMsgToChan(":" + client.getNick() + " PRIVMSG " + (*it) + " :" + message + "\r\n");
+		
+			
 		}
 
 		Client *clientDest = findClient(*it);
@@ -156,14 +160,7 @@ void Server::privmsgExec(Client &client, std::vector<std::string> &args) {
 		else
 			throw static_cast<std::string>(ERR_NOSUCHNICK(args[1]));
 	}
-
-//	class pass_mismatch : public std::exception
-//	{
-//		const char *what() const throw()
-//		{
-//			return ":server 464 pass :Password incorrect\r\n";
-//		}
-//	};
+	
 
 }
 
@@ -171,8 +168,35 @@ void Server::pingExec(Client &client, std::vector<std::string> &args){
 	sendMessage(":SERVNAME PONG " + args[1], client.getSockFd());
 }
 
-void Server::modeExec(Client &client, std::vector<std::string> &args){
 
 
+void Server::partExec (Client &client, std::vector<std::string> &args){
+	if(args.size() != 2)
+		throw static_cast<std::string>(ERR_NEEDMOREPARAMS(client.getNick(), args[0]));
+	
+	std::vector<std::string> dests = split(args[1],",");
+	std::vector<std::string>::iterator it = dests.begin();
+	std::vector<std::string>::iterator ite = dests.end();
+	
+	for(; it !=ite; it++){
+		Channel *channel = findChannel(*it);
+		if(!channel)
+			throw static_cast<std::string>(ERR_NOSUCHCHANNEL(client.getNick(),(*it)));
+		
+		if(!channel->isChannelUser(&client))//todo протестировать проверку что пользователь состоит в канале 
+			throw static_cast<std::string>(ERR_NOTONCHANNEL(client.getNick(), channel->getChannelName()));
+		
+		std::vector<Client*> members = channel->getUsersList();
+		for (unsigned int i=0; i<members.size(); i++){
+			if(members[i]->getNick() == client.getNick())
+				members.erase(members.begin() + i);
+		}
+		
+		std::vector<Client*> opers = channel->getOperatorsList();
+		for (unsigned int i=0; i<opers.size(); i++){
+			if(opers[i]->getNick() == client.getNick())
+				opers.erase(opers.begin() + i);
+		}
+	}
 }
 
