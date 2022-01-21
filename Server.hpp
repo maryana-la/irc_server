@@ -102,27 +102,31 @@ public:
 	int 		getNumUsers() const;
 	int			getMaxUsers() const;
 	bool 		getKeyStatus() const;
-	std::vector<Client *> *getUsersList();
-	std::vector<Client *> *getOperatorsList();
 	bool 		getTopicOperatorsOnly() const;
 
+
 	/*
-	 * OTHER FUNCTIONS
+	 *  SETTERS
 	 */
 	void setTopic (const std::string &topic);
 	void setTopicOperOnly(bool status);
 	void setInviteOnlyFlag (bool status);
 	void setMaxUsers (int num);
 
+
+	/*
+	 * OTHER FUNCTIONS
+	 */
 	void addUser(Client &user);
 	void addOperator(Client &user);
 
 	void deleteOperator(Client &user);
+	void deleteUser(Client &client);
 
 	std::string sendUserList();
 	bool isOperator(Client *client);
 	bool isChannelUser (Client *client);
-	void deleteUser(Client &client) { _users.erase(&client); }
+
 
 	void sendMsgToChan (const std::string &message);
 };

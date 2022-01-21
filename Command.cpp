@@ -308,8 +308,11 @@ void Server::setChannelmodes(Client &client, std::vector<std::string> &args) {
 //					if (!args[3][i])
 //				}
 //				ChanToUpd->setMaxUsers();
+		}
+	}
+}
 
-void Server::partExec (Client &client, std::vector<std::string> &args){
+void Server::partExec (Client &client, std::vector<std::string> &args) {
 	if(args.size() != 2)
 		throw static_cast<std::string>(ERR_NEEDMOREPARAMS(client.getNick(), args[0]));
 
@@ -325,19 +328,7 @@ void Server::partExec (Client &client, std::vector<std::string> &args){
 		if(!channel->isChannelUser(&client))//todo протестировать проверку что пользователь состоит в канале
 			throw static_cast<std::string>(ERR_NOTONCHANNEL(client.getNick(), channel->getChannelName()));
 
-		std::vector<Client*> *opers = channel->getOperatorsList();
-		for (unsigned int i=0; i<opers ->size(); i++){
-			if(opers[i]->getNick() == client.getNick()){}
-				opers.erase(opers.begin() + i);
-		}
-
-		std::vector<Client*> members = channel->getUsersList();
-		for (unsigned int i=0; i<members.size(); i++){
-			if(members[i]->getNick() == client.getNick()){
-				members.erase(members.begin() + i);
-			}
-
-		}
+		channel->deleteOperator(client);
+		channel->deleteUser(client);
 	}
 }
-

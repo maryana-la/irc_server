@@ -61,6 +61,15 @@ void Channel::addOperator(Client &user) { _operators.insert(&user); }
 
 void Channel::deleteOperator(Client &user) { _operators.erase(&user); }
 
+void Channel::deleteUser(Client &client) {
+	std::vector<Client *>::iterator it = _users.begin();
+	std::vector<Client *>::iterator ite = _users.end();
+	for (; it != ite; it++) {
+		if ((*it)->getNick() == client.getNick())
+			_users.erase(it);
+	}
+}
+
 std::string Channel::sendUserList() {
 	std::vector<Client *>::iterator it = _users.begin();
 	std::vector<Client *>::iterator ite = _users.end();
