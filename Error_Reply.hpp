@@ -82,6 +82,7 @@
 #define RPL_LISTSTART(nick)							":IRC 321 " + nick + " Channel :Users Name\r\n"
 #define	RPL_LIST(nick, channel, numusers, topic)	":IRC 322 " + nick + " " + channel + " " + numusers + " : " + topic + "\r\n"
 #define RPL_LISTEND(nick)							":IRC 323 " + nick + " :End of /LIST\r\n"
+#define RPL_CHANNELMODEIS(nick, channel, mode)		":IRC 324 " + nick + " " + channel + " " + mode + "\r\n"
 #define	RPL_NOTOPIC(nick, channel)					":IRC 331 " + nick + " " + channel + " :No topic is set\r\n"
 #define RPL_TOPIC(nick, channel, topic) 			":IRC 332 "  + nick + " " + channel + " :" + topic + "\r\n"
 #define	RPL_WHOREPLY(channel, usercount, operator)	":IRC 352 * " + channel + " has " + usercount + " users. Operator: " + operator + "\r\n"
@@ -112,7 +113,6 @@
 # define RPL_WHOWASUSER(nick, user, host, realname) (nick + " " + user + " " + host + " * :" + realname + "\r\n")
 # define RPL_ENDOFWHOWAS(nick) (nick + " :End of WHOWAS\r\n")
 
-# define RPL_CHANNELMODEIS(channel, mode, params) (channel + " " + mode + " " + params + "\r\n")
 
 # define RPL_INVITING(channel, nickname) (channel + " " + nickname + "\r\n")
 # define RPL_SUMMONING(user) (user + " :Summoning user to IRC\r\n")

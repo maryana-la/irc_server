@@ -29,11 +29,12 @@ int 		Channel::getNumUsers() const { return static_cast<int>(_users.size()); }
 int			Channel::getMaxUsers() const { return _maxUsers; }
 bool 		Channel::getKeyStatus() const { return _keyFlag; }
 bool 		Channel::getTopicOperatorsOnly() const { return _topicOperOnly; }
+bool 		Channel::getInviteOnlyFlag() const { return _inviteOnlyFlag; }
 
 
 void Channel::addUser(Client &user) {
 	/* check is channel is not full */
-	if (getNumUsers() == _maxUsers)
+	if (getNumUsers() >= _maxUsers)
 		throw ERR_CHANNELISFULL(user.getNick(), _name);
 
 	/* check if user is banned (nickname, username, host) */
@@ -113,7 +114,14 @@ void Channel::setTopicOperOnly(bool status) { _topicOperOnly = status; }
 
 void Channel::setInviteOnlyFlag (bool status) { _inviteOnlyFlag = status; }
 
-void Channel::setMaxUsers (int num) { _maxUsers = num; }
+void Channel::setMaxUsers (long int num) {
+	if (num > 0)
+		_maxUsers = num;
+}
+
+void Channel::setKey(std::string &password) { _key = password; }
+
+void Channel::setKeyFlag(bool status) { _keyFlag = status; }
 
 
 void Channel::sendMsgToChan (const std::string &message){

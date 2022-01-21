@@ -79,7 +79,7 @@ private:
 	std::string 			_key;
 	std::string 			_topic;
 
-	int 					_maxUsers;
+	long int				_maxUsers;
 	std::vector<Client *>	_users;
 	std::set<Client *>		_operators;
 	std::vector<Client *>	_banned;
@@ -103,6 +103,7 @@ public:
 	int			getMaxUsers() const;
 	bool 		getKeyStatus() const;
 	bool 		getTopicOperatorsOnly() const;
+	bool 		getInviteOnlyFlag() const;
 
 
 	/*
@@ -111,7 +112,9 @@ public:
 	void setTopic (const std::string &topic);
 	void setTopicOperOnly(bool status);
 	void setInviteOnlyFlag (bool status);
-	void setMaxUsers (int num);
+	void setMaxUsers (long int num);
+	void setKey(std::string &password);
+	void setKeyFlag(bool status);
 
 
 	/*
@@ -202,7 +205,7 @@ public:
 	Channel *findChannel(const std::string &channelName);
 	void sendTopic(Client &client, const std::string& channelName);
 	void sendUsers(Client &client,Channel &channel);
-	void setChannelmodes(Client &client, std::vector<std::string> &args);
+	void setChannelModes(Client &client, std::vector<std::string> &args);
 
 
 
@@ -212,7 +215,7 @@ void sendMessage(const std::string &msg, int socket_fd);
 int checkValidChannelName(const std::string &name);
 std:: vector<std::string> split(const std::string& line, const std::string& delimiter);
 std:: vector<std::string> split_args(const std::string& line);
-std::string	intToString(int num);
+std::string	intToString(long int num);
 
 void sendmotd(Client &client);
 #endif

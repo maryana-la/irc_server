@@ -254,9 +254,7 @@ void Server::modeExec(Client &client, std::vector<std::string> &args) {
 	if (args[1].find_first_of("&#+!") == 0) {
 		if (args[2].find_first_not_of("+-oitlk") != std::string::npos)
 			throw static_cast<std::string>(ERR_UMODEUNKNOWNFLAG(client.getNick(), args[1]));
-
-		setChannelmodes(client, args);
-
+		setChannelModes(client, args);
 	}
 
 
@@ -266,7 +264,7 @@ void Server::modeExec(Client &client, std::vector<std::string> &args) {
 	}
 }
 
-void Server::setChannelmodes(Client &client, std::vector<std::string> &args) {
+void Server::setChannelModes(Client &client, std::vector<std::string> &args) {
 	/* check if requested channel exists */
 	Channel *ChanToUpd = findChannel(args[1]);
 	if (!ChanToUpd)
@@ -289,28 +287,57 @@ void Server::setChannelmodes(Client &client, std::vector<std::string> &args) {
 					throw static_cast<std::string>(ERR_NOSUCHNICK(args[3]));
 				if (!ChanToUpd->isChannelUser(ClientToUpd))  // if requested user a member of channel
 					throw static_cast<std::string>(ERR_USERSDONTMATCH(client.getNick(), ChanToUpd->getChannelName()));
-				/* add new operator of the channel */
+				/* add/delete new operator of the channel */
 				if (isPlus)
 					ChanToUpd->addOperator(*ClientToUpd);
 				else
 					ChanToUpd->deleteOperator(*ClientToUpd);
-				break; //todo add reply
+				break;
 			case 't':
 				ChanToUpd->setTopicOperOnly(isPlus);
 				break;
 			case 'i':
 				ChanToUpd->setInviteOnlyFlag(isPlus);
 				break;
-//			case 'l':
-//				if (args.size() != 4)
-//					throw static_cast<std::string>(ERR_NEEDMOREPARAMS(client.getNick(), args[0]));
-//				for (int i = 0; i < args[3].size(); i++) {
-//					if (!args[3][i])
-//				}
-//				ChanToUpd->setMaxUsers();
+			case 'l':
+				if (isPlus) {
+					if (args.size() != 4)
+						throw static_cast<std::string>(ERR_NEEDMOREPARAMS(client.getNick(), args[0]));
+					ChanToUpd->setMaxUsers(strtol(args[3].c_str(), NULL, 10));
+				}
+				break;
+			case 'k':
+				if (isPlus) {
+					if (args.size() != 4)
+						throw static_cast<std::string>(ERR_NEEDMOREPARAMS(client.getNick(), args[0]));
+					ChanToUpd->setKey(args[3]);
+					ChanToUpd->setKeyFlag(isPlus);
+				}
+				else
+					ChanToUpd->setKeyFlag(isPlus);
+				break;
 		}
 	}
+	/* make string for RPL */
+	std::string modes = "[+n";
+	if (ChanToUpd->getTopicOperatorsOnly())
+		modes += "t";
+	if (ChanToUpd->getInviteOnlyFlag())
+		modes += "i";
+	if (ChanToUpd->getKeyStatus())
+		modes += "k";
+	if (ChanToUpd->getMaxUsers())
+		modes += "l(" + intToString(ChanToUpd->getMaxUsers()) + ")";
+	modes += "]";
+	sendMessage(RPL_CHANNELMODEIS(client.getNick(), ChanToUpd->getChannelName(), modes), client.getSockFd());
 }
+
+//MODE #AS +t
+//:IRC.1 324 QW #AS [+nt]
+//:QW!QW@127.0.0.1 MODE #AS +t
+//
+//MODE ZX +i
+//:IRC.1 221 ZX [+i]
 
 void Server::partExec (Client &client, std::vector<std::string> &args) {
 	if(args.size() != 2)

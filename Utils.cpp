@@ -45,7 +45,7 @@ std:: vector<std::string> split_args(const std::string& line) {
 	return args;
 }
 
-std::string	intToString(int num) {
+std::string	intToString(long int num) {
 	std::stringstream ss;
 	ss << num;
 	return(ss.str());
