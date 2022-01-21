@@ -193,7 +193,7 @@ public:
 	void modeExec(Client &client, std::vector<std::string> &args);
 	void pingExec(Client &client, std::vector<std::string> &args);
 	void partExec (Client &client, std::vector<std::string> &args);
-
+	void kickExec (Client &client, std::vector<std::string> &args);
 
 	/*
 	 * Server Utils

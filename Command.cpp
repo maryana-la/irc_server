@@ -325,10 +325,79 @@ void Server::partExec (Client &client, std::vector<std::string> &args) {
 		if(!channel)
 			throw static_cast<std::string>(ERR_NOSUCHCHANNEL(client.getNick(),(*it)));
 
-		if(!channel->isChannelUser(&client))//todo протестировать проверку что пользователь состоит в канале
+		if(!channel->isChannelUser(&client))
 			throw static_cast<std::string>(ERR_NOTONCHANNEL(client.getNick(), channel->getChannelName()));
-
-		channel->deleteOperator(client);
+		
 		channel->deleteUser(client);
+		channel->deleteOperator(client);
+		
+		if(!channel->getNumUsers()){ //remove channel if no users
+			std::vector<Channel *>::iterator itCh = _channels.begin();
+			std::vector<Channel *>::iterator iteCh = _channels.end();
+			for (; itCh != iteCh; itCh++) {
+				if ((*itCh)->getChannelName() == channel->getChannelName())
+					_channels.erase(itCh);
+			}
+		}
 	}
+}
+
+void Server::kickExec (Client &client, std::vector<std::string> &args) {
+	if(args.size() < 3)
+		throw static_cast<std::string>(ERR_NEEDMOREPARAMS(client.getNick(), args[0]));
+	
+	std::vector<std::string> chans = split(args[1],",");
+	std::vector<std::string>::iterator itCh = chans.begin();
+	std::vector<std::string>::iterator iteCh = chans.end();
+	
+	std::vector<std::string> users = split(args[1],",");
+
+
+	for(; itCh !=iteCh; itCh++){
+		Channel *channel = findChannel(*itCh);
+		if(!channel)
+			throw static_cast<std::string>(ERR_NOSUCHCHANNEL(client.getNick(),(*channel)));
+
+		if(!channel->isChannelUser(&client))
+			throw static_cast<std::string>(ERR_NOTONCHANNEL(client.getNick(), channel->getChannelName()));
+		
+		if(!channel->isOperator(&client))
+			throw static_cast<std::string>(ERR_CHANOPRIVSNEEDED(client.getNick(), channel->getChannelName()));
+		
+		std::vector<std::string>::iterator itUsers = users.begin();
+		std::vector<std::string>::iterator iteUsers = users.end();
+		for(; itUsers !=iteUsers; itUsers++){
+			Client *user = findClient(*itUsers);
+			if(!user)
+				throw  static_cast<std::string>(ERR_NOTONCHANNEL(client.getNick(), channel->getChannelName()));
+			
+			if(!channel->isChannelUser(user))
+				throw static_cast<std::string>(ERR_NOTONCHANNEL(client.getNick(), channel->getChannelName()));
+			
+			channel->deleteUser(*user);
+			channel->deleteOperator(*user);
+		
+			if(!channel->getNumUsers()){ //remove channel if no users
+				std::vector<Channel *>::iterator itChLast = _channels.begin();
+				std::vector<Channel *>::iterator iteChLast = _channels.end();
+				for (; itChLast != iteChLast; itChLast++) {
+					if ((*itChLast)->getChannelName() == channel->getChannelName())
+						_channels.erase(itChLast);
+				}
+			}
+			
+		}
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+	
+	}
+	
 }

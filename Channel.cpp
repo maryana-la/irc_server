@@ -59,7 +59,12 @@ void Channel::addUser(Client &user) {
 
 void Channel::addOperator(Client &user) { _operators.insert(&user); }
 
-void Channel::deleteOperator(Client &user) { _operators.erase(&user); }
+void Channel::deleteOperator(Client &user) { 
+	_operators.erase(&user);
+	if(_operators.size()==0 && _users.size()!=0)
+		addOperator(*_users[0]);
+		
+}
 
 void Channel::deleteUser(Client &client) {
 	std::vector<Client *>::iterator it = _users.begin();
@@ -68,6 +73,8 @@ void Channel::deleteUser(Client &client) {
 		if ((*it)->getNick() == client.getNick())
 			_users.erase(it);
 	}
+	
+
 }
 
 std::string Channel::sendUserList() {
