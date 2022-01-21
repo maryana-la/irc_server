@@ -55,7 +55,6 @@
 #define ERR_UMODEUNKNOWNFLAG						":IRC 501 * :Unknown MODE flag\r\n"
 #define ERR_USERSDONTMATCH							":IRC 502 * :Cant change mode for other users\r\n"
 
-
 /*
  * unknown comms
  */
@@ -76,8 +75,9 @@
 #define RPL_UNAWAY                              	":IRC 305 * :You are no longer marked as being away\r\n"
 #define RPL_NOWAWAY									":IRC 306 * :You have been marked as being away\r\n"
 #define	RPL_ENDOFWHO								":IRC 315 * :End of WHO list\r\n"
-#define	RPL_LIST(channel, countusers)				":IRC 322 * " + channel + " " + countusers + "\r\n"
-#define RPL_LISTEND									":IRC 323 * :End of LIST\r\n"
+#define RPL_LISTSTART(nick)							":IRC 321 " + nick + " Channel :Users Name\r\n"
+#define	RPL_LIST(nick, channel, numusers, topic)	":IRC 322 " + nick + " " + channel + " " + numusers + " : " + topic + "\r\n"
+#define RPL_LISTEND(nick)							":IRC 323 " + nick + " :End of /LIST\r\n"
 #define	RPL_NOTOPIC(nick, channel)					":IRC 331 " + nick + " " + channel + " :No topic is set\r\n"
 #define RPL_TOPIC(nick, channel, topic) 			":IRC 332 "  + nick + " " + channel + " :" + topic + "\r\n"
 #define	RPL_WHOREPLY(channel, usercount, operator)	":IRC 352 * " + channel + " has " + usercount + " users. Operator: " + operator + "\r\n"
@@ -87,6 +87,8 @@
 # define RPL_MOTD(nick, comment) 					":IRC 372 " + (nick) + " :- " + comment + "\r\n"
 # define RPL_MOTDSTART(nick) 						":IRC 375 " + (nick) + " :- IRC Message of the day - \r\n"
 # define RPL_ENDOFMOTD(nick) 						":IRC 376 " + (nick) + " :End of MOTD command\r\n"
+
+
 
 #define	RPL_TIME(timestr)							":IRC 391 * " + timestr + "\r\n"
 
@@ -105,7 +107,7 @@
 # define RPL_WHOISCHANNELS(nick, chann_info) (nick + " :" + chann_info + "\r\n")
 # define RPL_WHOWASUSER(nick, user, host, realname) (nick + " " + user + " " + host + " * :" + realname + "\r\n")
 # define RPL_ENDOFWHOWAS(nick) (nick + " :End of WHOWAS\r\n")
-# define RPL_LISTSTART() ("Channel :Users Name\r\n")
+
 # define RPL_CHANNELMODEIS(channel, mode, params) (channel + " " + mode + " " + params + "\r\n")
 
 # define RPL_INVITING(channel, nickname) (channel + " " + nickname + "\r\n")
