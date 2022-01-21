@@ -3,7 +3,6 @@
 Channel::Channel(const std::string& channel_name, Client &user) : _name(channel_name) {
 	_key = "";
 	_topic = "";
-	_numUsers = 1;
 	_maxUsers = 30;
 	_users.push_back(&user);
 	_operators.push_back(&user);
@@ -14,7 +13,6 @@ Channel::Channel(const std::string& channel_name, Client &user) : _name(channel_
 Channel::Channel(const std::string& channel_name, const std::string& key, Client &user) :
 		_name(channel_name), _key(key) {
 	_topic = "";
-	_numUsers = 1;
 	_maxUsers = 30;
 	_users.push_back(&user);
 	_operators.push_back(&user);
@@ -25,14 +23,14 @@ Channel::Channel(const std::string& channel_name, const std::string& key, Client
 std::string Channel::getChannelName() const { return _name; }
 std::string Channel::getTopic() const { return _topic; };
 std::string Channel::getKey() const { return _key; };
-int 		Channel::getNumUsers() const { return _numUsers; }
+int 		Channel::getNumUsers() const { return static_cast<int>(_users.size()); }
 int			Channel::getMaxUsers() const { return _maxUsers; }
 bool 		Channel::getKeyStatus() const { return _key_flag; }
 
 
 void Channel::addUser(Client &user) {
 	/* check is channel is not full */
-	if (_numUsers == _maxUsers)
+	if (getNumUsers() == _maxUsers)
 		throw ERR_CHANNELISFULL(user.getNick(), _name);
 
 	/* check if user is banned (nickname, username, host) */
@@ -54,7 +52,6 @@ void Channel::addUser(Client &user) {
 	}
 	/* add user */
 	_users.push_back(&user);
-	_numUsers++;
 }
 
 void Channel::addOperator(Client &user) { _operators.push_back(&user); }

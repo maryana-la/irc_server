@@ -77,7 +77,7 @@ private:
 	const std::string 		_name;
 	std::string 			_key;
 	std::string 			_topic;
-	int						_numUsers;
+
 	int 					_maxUsers;
 	std::vector<Client *>	_users;
 	std::vector<Client *>	_operators;
@@ -100,8 +100,8 @@ public:
 	int 		getNumUsers() const;
 	int			getMaxUsers() const;
 	bool 		getKeyStatus() const;
-	std::vector<Client *> getUsersList()const;
-	std::vector<Client *> getOperatorsList()const;
+	std::vector<Client *> *getUsersList();
+	std::vector<Client *> *getOperatorsList();
 
 	/*
 	 * OTHER FUNCTIONS
@@ -114,6 +114,7 @@ public:
 	std::string sendUserList();
 	bool isOperator(Client *client);
 	bool isChannelUser (Client *client);
+	void deleteUser(Client &client) { _users.erase(&client); }
 
 	void sendMsgToChan (const std::string &message);
 };
@@ -157,8 +158,7 @@ public:
 
 	Client *findUserByFd(int fd);
 
-
-	void commandProcess(Client &user, const std::string &message);
+	
 
 
 
