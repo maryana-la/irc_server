@@ -7,6 +7,7 @@
 # include <string>
 # include <stdexcept>
 # include <vector>
+#include <set>
 
 # include <sys/socket.h>
 # include <arpa/inet.h>
@@ -80,10 +81,11 @@ private:
 	int						_numUsers;
 	int 					_maxUsers;
 	std::vector<Client *>	_users;
-	std::vector<Client *>	_operators;
+	std::set<Client *>		_operators;
 	std::vector<Client *>	_banned;
-	bool 					_inviteOnly_flag;
-	bool 					_key_flag;
+	bool 					_inviteOnlyFlag;
+	bool 					_keyFlag;
+	bool 					_topicOperOnly;
 
 	Channel() {}
 
@@ -100,14 +102,20 @@ public:
 	int 		getNumUsers() const;
 	int			getMaxUsers() const;
 	bool 		getKeyStatus() const;
+	bool 		getTopicOperatorsOnly() const;
 
 	/*
 	 * OTHER FUNCTIONS
 	 */
 	void setTopic (const std::string &topic);
+	void setTopicOperOnly(bool status);
+	void setInviteOnlyFlag (bool status);
+	void setMaxUsers (int num);
 
 	void addUser(Client &user);
 	void addOperator(Client &user);
+
+	void deleteOperator(Client &user);
 
 	std::string sendUserList();
 	bool isOperator(Client *client);
@@ -173,9 +181,7 @@ public:
 
 	void joinExec(Client &client, std::vector<std::string> &args);
 	void listExec(Client &client, std::vector<std::string> &args);
-	void sendTopic(Client &client, const std::string& channelName);
 	void topicExec(Client &client, std::vector<std::string> &args);
-	void sendUsers(Client &client,Channel &channel);
 
 	void privmsgExec(Client &client, std::vector<std::string> &args);
 	void modeExec(Client &client, std::vector<std::string> &args);
@@ -187,6 +193,9 @@ public:
 	 */
 	Client *findClient(const std::string &clientNick);
 	Channel *findChannel(const std::string &channelName);
+	void sendTopic(Client &client, const std::string& channelName);
+	void sendUsers(Client &client,Channel &channel);
+	void setChannelmodes(Client &client, std::vector<std::string> &args);
 
 
 

@@ -95,7 +95,7 @@ void Server::acceptProcess() {
 	for (unsigned int i = 0; i < this->_fds.size(); i++) {
 		nowPollfd = this->_fds[i];
 
-		if ((nowPollfd.revents & POLLIN) == POLLIN) { ///модно считать данные
+		if ((nowPollfd.revents & POLLIN) == POLLIN) { ///можно считать данные
 
 			if (nowPollfd.fd == this->_socketFd) { ///accept
 				int clientSocket;

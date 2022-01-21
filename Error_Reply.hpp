@@ -42,18 +42,22 @@
 #define ERR_YOUREBANNEDCREEP						":IRC 465 * :You are banned from this server\r\n"
 #define ERR_KEYSET(channel)							":IRC 467 * #" + channel + " :Channel key already set\r\n"
 #define ERR_CHANNELISFULL(nick, channel)			":IRC 471 " + nick + " " + channel + " :Cannot join channel (+l)\r\n"
-#define ERR_UNKNOWNMODE(char)						":IRC 472 * " + char + " :is unknown mode char to me\r\n"
+#define ERR_UNKNOWNMODE(nick, char)					":IRC 472 " + nick + " " +  char + " :is unknown mode char to me\r\n"
 #define ERR_INVITEONLYCHAN(channel)					":IRC 473 * #" + channel + " :Cannot join channel (+i)\r\n"
 #define ERR_BANNEDFROMCHAN(nick, channel)			":IRC 474 " + nick + " " + channel + " :Cannot join channel (+b)\r\n"
 #define ERR_BADCHANNELKEY(nick, channel)			":IRC 475 " + nick + " " + channel + " :Cannot join channel (+k)\r\n"
 #define	ERR_BADCHANMASK(channel)					":IRC 476 * #" + channel + " :Bad Channel Mask\r\n"
 #define ERR_NOPRIVILEGES							":IRC 481 * :Permission Denied- You're not an IRC operator\r\n"
-#define ERR_CHANOPRIVSNEEDED(channel)				":IRC 482 * #" + channel + " :You're not channel operator\r\n"
+#define ERR_CHANOPRIVSNEEDED(nick, channel)			":IRC 482 " + nick + " " + channel + " :You're not channel operator\r\n"
 #define ERR_CANTKILLSERVER							":IRC 483 * :You cant kill a server!\r\n"
 #define	ERR_RESTRICTED								":IRC 484 * :Your connection is restricted!\r\n"
 #define ERR_NOOPERHOST								":IRC 491 * :No O-lines for your host\r\n"
-#define ERR_UMODEUNKNOWNFLAG						":IRC 501 * :Unknown MODE flag\r\n"
-#define ERR_USERSDONTMATCH							":IRC 502 * :Cant change mode for other users\r\n"
+#define ERR_UMODEUNKNOWNFLAG(nick, channel)			":IRC 501 " + nick + " " + channel + " :Unknown MODE flag\r\n"
+#define ERR_USERSDONTMATCH(nick, channel)			":IRC 502 " + nick + " " + channel + " :Cant change mode for other users\r\n"
+
+
+
+
 
 /*
  * unknown comms

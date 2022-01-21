@@ -57,8 +57,7 @@ std::string	intToString(int num) {
 //A colon (':') is used as a delimiter for the channel mask.
 // Channels with '&' as prefix are local to the server where they are created.
 int checkValidChannelName(const std::string &name) {
-	if (name.length() > 50 ||
-			(name[0] != '&' && name[0] != '#' && name[0] != '+' && name[0] != '!'))
+	if (name.length() > 50 || name.find_first_of("&#+!") != 0)
 		return 0;
 	for (int i = 0; i < name.length(); i++) {
 		if (isspace(name[i]) || iscntrl(name[i]) || name[i] == ',')
@@ -68,8 +67,8 @@ int checkValidChannelName(const std::string &name) {
 }
 
 Client *Server::findClient(const std::string &clientNick){
-	std::vector<Client*>::iterator it= _users.begin();
-	std::vector<Client*>::iterator ite= _users.end();
+	std::vector<Client*>::iterator it = _users.begin();
+	std::vector<Client*>::iterator ite = _users.end();
 	for(; it !=ite; it++){
 		if ((*it)->getNick() == clientNick)
 			return (*it);
@@ -78,8 +77,8 @@ Client *Server::findClient(const std::string &clientNick){
 }
 
 Channel *Server::findChannel(const std::string &channelName){
-	std::vector<Channel*>::iterator it= _channels.begin();
-	std::vector<Channel*>::iterator ite= _channels.end();
+	std::vector<Channel*>::iterator it = _channels.begin();
+	std::vector<Channel*>::iterator ite = _channels.end();
 	for(; it !=ite; it++){
 		if ((*it)->getChannelName() == channelName)
 			return (*it);

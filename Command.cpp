@@ -116,7 +116,10 @@ void Server::topicExec(Client &client, std::vector<std::string> &args) {
 		if (!tmp->isChannelUser(&client))
 			throw static_cast<std::string>(ERR_NOTONCHANNEL(client.getNick(),tmp->getChannelName()));
 
-		//todo add check for operators rights
+		/* if topic can be changed only by operators and current user is not operator */
+		if (tmp->getTopicOperatorsOnly() && !tmp->isOperator(&client))
+			throw static_cast<std::string>(ERR_CHANOPRIVSNEEDED(client.getNick(), tmp->getChannelName()));
+
 		tmp->setTopic(args[2]);
 	}
 }
@@ -165,8 +168,83 @@ void Server::pingExec(Client &client, std::vector<std::string> &args){
 	sendMessage(":SERVNAME PONG " + args[1], client.getSockFd());
 }
 
-void Server::modeExec(Client &client, std::vector<std::string> &args){
+void Server::modeExec(Client &client, std::vector<std::string> &args) {
+	/* check number of args */
+	if (args.size() < 3)
+		throw static_cast<std::string>(ERR_NEEDMOREPARAMS(client.getNick(), args[0]));
+	/* check number if +- in flag argument */
+	if (args[2].find_first_of("+-" != 0))
+		throw static_cast<std::string>(ERR_UNKNOWNMODE(client.getNick(), args[2][0]));
 
 
+	/* if channel */
+	if (args[1].find_first_of("&#+!") == 0) {
+		if (args[2].find_first_not_of("+-oitlk") != std::string::npos)
+			throw static_cast<std::string>(ERR_UMODEUNKNOWNFLAG(client.getNick(), args[1]));
+
+		setChannelmodes(client, args);
+
+	}
+
+
+	/* if user */
+	else {
+
+	}
 }
+
+void Server::setChannelmodes(Client &client, std::vector<std::string> &args) {
+	/* check if requested channel exists */
+	Channel *ChanToUpd = findChannel(args[1]);
+	if (!ChanToUpd)
+		throw static_cast<std::string>(ERR_NOSUCHCHANNEL(client.getNick(), args[1]));
+
+	/* check if client is operator */
+	if (!ChanToUpd->isOperator(&client))
+		throw static_cast<std::string>(ERR_CHANOPRIVSNEEDED(client.getNick(), ChanToUpd->getChannelName()));
+
+	bool isPlus = (args[2][0] == '+');
+	Client *ClientToUpd;
+	std::string::iterator it = args[2].begin() + 1;
+	for (; it != args[2].end(); it++) {
+		switch (*it) {
+			case 'o':
+				if (args.size() != 4)
+					throw static_cast<std::string>(ERR_NEEDMOREPARAMS(client.getNick(), args[0]));
+				ClientToUpd = findClient(args[3]);
+				if (!ClientToUpd)  // if requested user exists
+					throw static_cast<std::string>(ERR_NOSUCHNICK(args[3]));
+				if (!ChanToUpd->isChannelUser(ClientToUpd))  // if requested user a member of channel
+					throw static_cast<std::string>(ERR_USERSDONTMATCH(client.getNick(), ChanToUpd->getChannelName()));
+				/* add new operator of the channel */
+				if (isPlus)
+					ChanToUpd->addOperator(*ClientToUpd);
+				else
+					ChanToUpd->deleteOperator(*ClientToUpd);
+				break; //todo add reply
+			case 't':
+				ChanToUpd->setTopicOperOnly(isPlus);
+				break;
+			case 'i':
+				ChanToUpd->setInviteOnlyFlag(isPlus);
+				break;
+//			case 'l':
+//				if (args.size() != 4)
+//					throw static_cast<std::string>(ERR_NEEDMOREPARAMS(client.getNick(), args[0]));
+//				for (int i = 0; i < args[3].size(); i++) {
+//					if (!args[3][i])
+//				}
+//				ChanToUpd->setMaxUsers();
+
+		}
+	}
+}
+
+
+
+
+
+
+
+
 

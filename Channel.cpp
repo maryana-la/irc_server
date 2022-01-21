@@ -3,23 +3,23 @@
 Channel::Channel(const std::string& channel_name, Client &user) : _name(channel_name) {
 	_key = "";
 	_topic = "";
-	_numUsers = 1;
 	_maxUsers = 30;
 	_users.push_back(&user);
-	_operators.push_back(&user);
-	_inviteOnly_flag = false;
-	_key_flag = false;
+	_operators.insert(&user);
+	_inviteOnlyFlag = false;
+	_keyFlag = false;
+	_topicOperOnly = false;
 };
 
 Channel::Channel(const std::string& channel_name, const std::string& key, Client &user) :
 		_name(channel_name), _key(key) {
 	_topic = "";
-	_numUsers = 1;
 	_maxUsers = 30;
 	_users.push_back(&user);
-	_operators.push_back(&user);
-	_inviteOnly_flag = false;
-	_key_flag = true;
+	_operators.insert(&user);
+	_inviteOnlyFlag = false;
+	_keyFlag = true;
+	_topicOperOnly = false;
 }
 
 std::string Channel::getChannelName() const { return _name; }
@@ -27,7 +27,8 @@ std::string Channel::getTopic() const { return _topic; };
 std::string Channel::getKey() const { return _key; };
 int 		Channel::getNumUsers() const { return _numUsers; }
 int			Channel::getMaxUsers() const { return _maxUsers; }
-bool 		Channel::getKeyStatus() const { return _key_flag; }
+bool 		Channel::getKeyStatus() const { return _keyFlag; }
+bool 		Channel::getTopicOperatorsOnly() const { return _topicOperOnly; }
 
 
 void Channel::addUser(Client &user) {
@@ -57,7 +58,9 @@ void Channel::addUser(Client &user) {
 	_numUsers++;
 }
 
-void Channel::addOperator(Client &user) { _operators.push_back(&user); }
+void Channel::addOperator(Client &user) { _operators.insert(&user); }
+
+void Channel::deleteOperator(Client &user) { _operators.erase(&user); }
 
 std::string Channel::sendUserList() {
 	std::vector<Client *>::iterator it = _users.begin();
@@ -75,8 +78,8 @@ std::string Channel::sendUserList() {
 }
 
 bool Channel::isOperator(Client *client) {
-	std::vector<Client *>::iterator it = _operators.begin();
-	std::vector<Client *>::iterator ite = _operators.end();
+	std::set<Client *>::iterator it = _operators.begin();
+	std::set<Client *>::iterator ite = _operators.end();
 
 	for (; it != ite; it++) {
 		if (*it == client)
@@ -97,6 +100,12 @@ bool Channel::isChannelUser (Client *client) {
 }
 
 void Channel::setTopic(const std::string &topic) { _topic = topic; }
+
+void Channel::setTopicOperOnly(bool status) { _topicOperOnly = status; }
+
+void Channel::setInviteOnlyFlag (bool status) { _inviteOnlyFlag = status; }
+
+void Channel::setMaxUsers (int num) { _maxUsers = num; }
 
 
 void Channel::sendMsgToChan (const std::string &message){
