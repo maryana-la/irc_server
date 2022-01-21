@@ -88,3 +88,6 @@ Channel *Server::findChannel(const std::string &channelName){
 
 
 
+std::vector<Client *>* Channel::getUsersList(){ return &_users;}
+
+std::vector<Client *>* Channel::getOperatorsList(){ return &_operators;}

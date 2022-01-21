@@ -12,9 +12,7 @@
 
 
 Server::Server(const std::string *host, const std::string &port, const std::string &password)
-		: _socketFd(-1), _host(host), _port(port), _password(password) {
-
-}
+		: _socketFd(-1), _host(host), _port(port), _password(password) {}
 
 /**
  * создание структуры addrinfo, создание сокета и bind
@@ -86,7 +84,7 @@ Client *Server::findUserByFd(int fd) {
 			return this->_users[i];
 		}
 	}
-	return nullptr;
+	return NULL;
 }
 
 void Server::acceptProcess() {
@@ -117,7 +115,7 @@ void Server::acceptProcess() {
 				this->_users.push_back(user);
 			} else { ///нужно принять данные не с основного сокета, который мы слушаем(клиентского?)
 				try {
-					std::cout << "fd: " << nowPollfd.fd << std::endl;
+//					std::cout << "fd: " << nowPollfd.fd << std::endl;
 					Client *curUser = findUserByFd(nowPollfd.fd);
 					this->parser(curUser, recvMessage(curUser->getSockFd()));
 				} catch (std::runtime_error &e) {
@@ -162,78 +160,4 @@ std::string Server::recvMessage(int fd) {
 	std::cout << "from fd" << fd << ": " << message << "" << std::endl;
 	return (message);
 }
-
-
-/**
- * находит какую команду вызывает Юзер и выполняет ее
- * @param user указатель на юзера, который отправил сообщение
- */
-//void Server::commandProcess(Client &user, const std::string &message) {
-//
-//	std::cout << "From fd" << user.getSockFd() << ": " << message << std::endl;
-//	sendMessage("!!!" + message, user.getSockFd());
-//}
-
-
-void Server::parser(Client *client, std::string msg) {
-
-
-	std::vector<std::string> common;
-//	msg.erase(std::remove(msg.begin(), msg.end(), ':'), msg.end());
-	common = split(msg, "\n\r");
-
-    /* find command and execute */
-
-	for (int i = 0; i < common.size(); i++)
-	{
-		try
-		{
-			std::vector<std::string> args = split_args(common[i]);
-			/* if client is not registered yet */
-			if (!(args[0] == "PASS" || args[0] == "pass" || args[0] == "USER" || args[0] == "user" || args[0] == "NICK" || args[0] == "nick")) {
-				if (!client->getRegisterStatus())
-					throw static_cast<std::string>(ERR_NOTREGISTERED);
-			}
-
-			// todo replace with switch case
-			if (args[0] == "PASS" || args[0] == "pass")
-				passExec(*client, args);
-			else if (args[0] == "USER" || args[0] == "user")
-				userExec(*client, args);
-			else if (args[0] == "NICK" || args[0] == "nick")
-				nickExec(*client, args);
-			else if (args[0] == "JOIN" || args[0] == "join")
-				joinExec(*client, args);
-			else if (args[0] == "LIST" || args[0] == "list")
-				listExec(*client, args);
-			else if (args[0] == "PRIVMSG" || args[0] == "privmsg")
-				privmsgExec(*client, args);
-			else if (args[0] == "PING" || args[0] == "ping")
-				pingExec(*client, args);
-			else if (args[0] == "TOPIC" || args[0] == "topic")
-				topicExec(*client, args);
-
-
-
-			//todo clear memory for args in the end
-			args.clear();
-		}
-		catch (const char *msg) {
-			std::cout << msg << " char\n";
-		}
-		catch (std::string &msg) {
-			sendMessage(msg, client->getSockFd());
-			std::cout << msg << " string\n"; //cout to server
-		}
-		catch (std::exception &e) {
-			sendMessage(e.what(), client->getSockFd());
-			std::cout << e.what() << "\n"; //cout to server
-			std::cout << msg << " std::exception\n"; //cout to server
-		}
-		catch (...) {
-			std::cout << " catch all\n";
-		}
-	}
-}
-
 
