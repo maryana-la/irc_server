@@ -128,7 +128,7 @@ public:
 	bool isChannelUser (Client *client);
 
 
-	void sendMsgToChan (const std::string &message);
+	void sendMsgToChan(const std::string &message, Client *client);
 };
 
 

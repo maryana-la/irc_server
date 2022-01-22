@@ -16,7 +16,7 @@ void Server::parser(Client *client, std::string msg) {
 		{
 			std::vector<std::string> args = split_args(common[i]);
 			/* if client is not registered yet */
-			if (!(args[0] == "PASS" || args[0] == "pass" || args[0] == "USER" || args[0] == "user" || args[0] == "NICK" || args[0] == "nick" || args[0] == "PART" || args[0] == "part")) {
+			if (!(args[0] == "PASS" || args[0] == "pass" || args[0] == "USER" || args[0] == "user" || args[0] == "NICK" || args[0] == "nick" || args[0] == "PART" || args[0] == "part" || args[0] == "KICK" || args[0] == "kick")) {
 				if (!client->getRegisterStatus())
 					throw static_cast<std::string>(ERR_NOTREGISTERED);
 			}
@@ -40,6 +40,8 @@ void Server::parser(Client *client, std::string msg) {
 				topicExec(*client, args);
 			else if (args[0] == "PART" || args[0] == "part")
 				partExec(*client, args);
+			else if (args[0] == "KICK" || args[0] == "kick")
+				kickExec(*client, args);
 
 
 
@@ -222,18 +224,21 @@ void Server::privmsgExec(Client &client, std::vector<std::string> &args) {
 				throw static_cast<std::string>(ERR_CANNOTSENDTOCHAN(client.getNick(), channelDest->getChannelName()));
 
 
-			channelDest->sendMsgToChan(":" + client.getNick() + " PRIVMSG " + (*it) + " :" + message + "\r\n");
+			channelDest->sendMsgToChan(":" + client.getNick() + " PRIVMSG " + (*it) + " :" + message + "\r\n", &client);
 
 
 		}
-
-		Client *clientDest = findClient(*it);
-		if (clientDest){
-			sendMessage((":" + client.getNick() + " PRIVMSG " + (*it) + " :" + message + "\r\n"), clientDest->getSockFd());
-			return;
+		else{
+			Client *clientDest = findClient(*it);
+			if (clientDest){
+				sendMessage((":" + client.getNick() + " PRIVMSG " + (*it) + " :" + message + "\r\n"), clientDest->getSockFd());
+				return;
+			}
+			else
+				throw static_cast<std::string>(ERR_NOSUCHNICK(args[1]));
 		}
-		else
-			throw static_cast<std::string>(ERR_NOSUCHNICK(args[1]));
+
+		
 	}
 }
 
@@ -345,38 +350,38 @@ void Server::partExec (Client &client, std::vector<std::string> &args) {
 void Server::kickExec (Client &client, std::vector<std::string> &args) {
 	if(args.size() < 3)
 		throw static_cast<std::string>(ERR_NEEDMOREPARAMS(client.getNick(), args[0]));
-	
+
 	std::vector<std::string> chans = split(args[1],",");
 	std::vector<std::string>::iterator itCh = chans.begin();
 	std::vector<std::string>::iterator iteCh = chans.end();
-	
+
 	std::vector<std::string> users = split(args[1],",");
 
 
 	for(; itCh !=iteCh; itCh++){
 		Channel *channel = findChannel(*itCh);
 		if(!channel)
-			throw static_cast<std::string>(ERR_NOSUCHCHANNEL(client.getNick(),(*channel)));
+			throw static_cast<std::string>(ERR_NOSUCHCHANNEL(client.getNick(),(channel->getChannelName())));
 
 		if(!channel->isChannelUser(&client))
 			throw static_cast<std::string>(ERR_NOTONCHANNEL(client.getNick(), channel->getChannelName()));
-		
+
 		if(!channel->isOperator(&client))
 			throw static_cast<std::string>(ERR_CHANOPRIVSNEEDED(client.getNick(), channel->getChannelName()));
-		
+
 		std::vector<std::string>::iterator itUsers = users.begin();
 		std::vector<std::string>::iterator iteUsers = users.end();
 		for(; itUsers !=iteUsers; itUsers++){
 			Client *user = findClient(*itUsers);
 			if(!user)
 				throw  static_cast<std::string>(ERR_NOTONCHANNEL(client.getNick(), channel->getChannelName()));
-			
+
 			if(!channel->isChannelUser(user))
 				throw static_cast<std::string>(ERR_NOTONCHANNEL(client.getNick(), channel->getChannelName()));
-			
+
 			channel->deleteUser(*user);
 			channel->deleteOperator(*user);
-		
+
 			if(!channel->getNumUsers()){ //remove channel if no users
 				std::vector<Channel *>::iterator itChLast = _channels.begin();
 				std::vector<Channel *>::iterator iteChLast = _channels.end();
@@ -385,19 +390,19 @@ void Server::kickExec (Client &client, std::vector<std::string> &args) {
 						_channels.erase(itChLast);
 				}
 			}
-			
+
 		}
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-	
+
+
+
+
+
+
+
+
+
+
+
 	}
-	
+
 }

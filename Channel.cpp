@@ -123,11 +123,13 @@ void Channel::setInviteOnlyFlag (bool status) { _inviteOnlyFlag = status; }
 void Channel::setMaxUsers (int num) { _maxUsers = num; }
 
 
-void Channel::sendMsgToChan (const std::string &message){
+void Channel::sendMsgToChan(const std::string &message, Client *client)
+{
 
 	std::vector<Client*>::iterator it= _users.begin();
 	std::vector<Client*>::iterator ite= _users.end();
 	for(; it !=ite; it++){
-		sendMessage(message, (*it)->getSockFd());
+		if((*it)->getNick() != client->getNick())
+			sendMessage(message, (*it)->getSockFd());
 	}
 }
