@@ -53,7 +53,7 @@
 #define	ERR_RESTRICTED								":IRC 484 * :Your connection is restricted!\r\n"
 #define ERR_NOOPERHOST								":IRC 491 * :No O-lines for your host\r\n"
 #define ERR_UMODEUNKNOWNFLAG(nick, channel)			":IRC 501 " + nick + " " + channel + " :Unknown MODE flag\r\n"
-#define ERR_USERSDONTMATCH(nick, channel)			":IRC 502 " + nick + " " + channel + " :Cant change mode for other users\r\n"
+#define ERR_USERSDONTMATCH(nick)					":IRC 502 " + nick + " :Cant change mode for other users\r\n"
 
 
 
@@ -75,6 +75,7 @@
 */
 
 #define RPL_WELCOME(nick) 							":IRC 001 " + nick + " :Welcome to the Internet Relay Network " + nick + "\r\n"
+# define RPL_UMODEIS(nick, mode) 					":IRC 221 " + nick + " " + mode + "\r\n"
 #define	RPL_AWAY(nick, message)						":IRC 301 * " + nick + " :" + message + "\r\n"
 #define RPL_UNAWAY                              	":IRC 305 * :You are no longer marked as being away\r\n"
 #define RPL_NOWAWAY									":IRC 306 * :You have been marked as being away\r\n"
@@ -152,7 +153,7 @@
 # define RPL_STATSUPTIME(arg) (":Server Up " + arg + "\r\n")
 # define RPL_STATSOLINE(host_mask, name) ("O " + host_mask + " * " + name + "\r\n")
 # define RPL_STATSHLINE(host_mask, server_name) ("H " + host_mask + " * " + server_name + "\r\n")
-# define RPL_UMODEIS(user_mode) (user_mode + "\r\n")
+
 # define RPL_LUSERCLIENT(int1, int2, int3) (":There are " + int1 + " users and " + int2 + " invisible on " + int3 + " servers\r\n")
 # define RPL_LUSEROP(int1) (int1 + " :operator(s) online\r\n")
 # define RPL_LUSERUNKNOWN(int1) (int1 + " :unknown connection(s)\r\n")
