@@ -12,7 +12,10 @@
 
 
 Server::Server(const std::string *host, const std::string &port, const std::string &password)
-		: _socketFd(-1), _host(host), _port(port), _password(password) {}
+		: _socketFd(-1), _host(host), _port(port), _password(password), _maxNumberOfChannels(30) {
+	_operator_login.insert(std::make_pair("jjacquel", "ircserv"));
+	_operator_login.insert(std::make_pair("rchelsea", "ircserv"));
+}
 
 /**
  * создание структуры addrinfo, создание сокета и bind
@@ -75,14 +78,14 @@ void Server::start() {
 	}
 }
 
-Server::~Server() {
+Server::~Server() { }
 
-}
-
-Client *Server::findUserByFd(int fd) {
-	for (unsigned int i = 0; i < this->_users.size(); i++) {
-		if (fd == this->_users[i]->getSockFd()) {
-			return this->_users[i];
+Client *Server::findClientbyFd(int fd) {
+	std::vector<Client*>::iterator it = _users.begin();
+	std::vector<Client*>::iterator ite = _users.end();
+	for (; it != ite; it++) {
+		if (fd == (*it)->getSockFd()) {
+			return *it;
 		}
 	}
 	return NULL;
@@ -117,7 +120,7 @@ void Server::acceptProcess() {
 			} else { ///нужно принять данные не с основного сокета, который мы слушаем(клиентского?)
 				try {
 //					std::cout << "fd: " << nowPollfd.fd << std::endl;
-					Client *curUser = findUserByFd(nowPollfd.fd);
+					Client *curUser = findClientbyFd(nowPollfd.fd);
 					this->parser(curUser, recvMessage(curUser->getSockFd()));
 				} catch (std::runtime_error &e) {
 					std::cout << e.what() << std::endl;
@@ -125,22 +128,24 @@ void Server::acceptProcess() {
 			}
 		}
 		if ((nowPollfd.revents & POLLHUP) == POLLHUP) { ///кто-то оборвал соединение
-			Client *user = findUserByFd(nowPollfd.fd);
+			Client *user = findClientbyFd(nowPollfd.fd);
 			if (user == nullptr) {
 				continue;
 			}
-			this->removeUser(user);
+			removeClient(user);
+			removeOperator(user);
 			close(_fds[i].fd);
-			this->_fds.erase(_fds.begin() + i);
+			_fds.erase(_fds.begin() + i);
 		}
 	}
 }
 
-void Server::removeUser(Client *user) {
-	for (unsigned int i = 0; i != this->_users.size(); i++) {
-		if (user == _users[i]) {
-//			users[i]->leaveAllChannels();
-			_users.erase(_users.begin() + i);
+void Server::removeClient(Client *user) {
+	std::vector<Client *>::iterator it = _users.begin();
+	std::vector<Client *>::iterator ite = _users.end();
+	for (; it != ite; it++) {
+		if (*it == user) {
+			_users.erase(it);
 			break;
 		}
 	}

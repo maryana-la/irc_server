@@ -65,7 +65,7 @@ void Channel::addOperator(Client &user) { _operators.insert(&user); }
 
 void Channel::deleteOperator(Client &user) { 
 	_operators.erase(&user);
-	if(_operators.size()==0 && _users.size()!=0)
+	if(_operators.empty() && !_users.empty())
 		addOperator(*_users[0]);
 		
 }
@@ -77,21 +77,21 @@ void Channel::deleteUser(Client &client) {
 		if ((*it)->getNick() == client.getNick())
 			_users.erase(it);
 	}
-	
-
 }
 
-std::string Channel::sendUserList() {
+std::string Channel::sendUserList(bool printInvisibleUsers) {
 	std::vector<Client *>::iterator it = _users.begin();
 	std::vector<Client *>::iterator ite = _users.end();
 	std::string userList;
 
 	for (; it != ite; it++) {
-		if (isOperator(*it))
-			userList += "@";
-		userList += (*it)->getNick();
-		if (it + 1 != ite)
-			userList += ", ";
+		if (printInvisibleUsers || !(*it)->getInvisibleStatus()) {
+			if (!userList.empty())
+				userList += ", ";
+			if (isOperator(*it))
+				userList += "@";
+			userList += (*it)->getNick();
+		}
 	}
 	return userList;
 }
@@ -145,15 +145,3 @@ void Channel::sendMsgToChan(const std::string &message, Client *client)
 			sendMessage(message, (*it)->getSockFd());
 	}
 }
-
-//std::string Channel::printChannelUsers() {
-//	std::vector<Client *>::iterator it = _users.begin();
-//	std::vector<Client *>::iterator ite = _users.end();
-//	std::string users;
-//	for (; it != ite; it++) {
-//		if (it != _users.begin())
-//			users += ", ";
-//		users += (*it)->getNick();
-//	}
-//	return users;
-//}

@@ -7,7 +7,8 @@
 # include <string>
 # include <stdexcept>
 # include <vector>
-#include <set>
+# include <set>
+# include <map>
 
 # include <sys/socket.h>
 # include <arpa/inet.h>
@@ -129,7 +130,7 @@ public:
 	void deleteOperator(Client &user);
 	void deleteUser(Client &client);
 
-	std::string sendUserList();
+	std::string sendUserList(bool printInvisibleUsers);
 	bool isOperator(Client *client);
 	bool isChannelUser (Client *client);
 
@@ -154,6 +155,7 @@ private:
 	std::vector<Client *> _users;
 	std::vector<Channel *> _channels;
 	std::set<Client *> _operators;
+	std::map<std::string, std::string> _operator_login;
 	int _maxNumberOfChannels;
 
 	typedef void(Server::*command)(std::vector<std::string> &args, Client &user);
@@ -169,10 +171,8 @@ public:
 	void init();
 	void acceptProcess();
 	std::string recvMessage(int fd);
-	Client *findUserByFd(int fd);
 
 
-	void removeUser(Client *user);
     void parser(Client *client, std::string msg);
 	bool isServerOperator(Client *client);
 
@@ -186,24 +186,34 @@ public:
 
 	void joinExec(Client &client, std::vector<std::string> &args);
 	void listExec(Client &client, std::vector<std::string> &args);
-	void EXTRAlistExec(Client &client, std::vector<std::string> &args); //todo delete
 	void topicExec(Client &client, std::vector<std::string> &args);
 
 	void privmsgExec(Client &client, std::vector<std::string> &args);
 	void modeExec(Client &client, std::vector<std::string> &args);
 	void pingExec(Client &client, std::vector<std::string> &args);
-	void partExec (Client &client, std::vector<std::string> &args);
-	void kickExec (Client &client, std::vector<std::string> &args);
+
+	void partExec(Client &client, std::vector<std::string> &args);
+	void kickExec(Client &client, std::vector<std::string> &args);
+	void namesExec(Client &client, std::vector<std::string> &args);
+
+	void operExec(Client &client, std::vector<std::string> &args);
+	void quitExec(Client &client, std::vector<std::string> &args);
+	void killExec(Client &client, std::vector<std::string> &args);
 
 	/*
 	 * Server Utils
 	 */
 	Client *findClient(const std::string &clientNick);
+	Client *findClientbyFd(int fd);
 	Channel *findChannel(const std::string &channelName);
 	void sendTopic(Client &client, const std::string& channelName);
 	void sendUsers(Client &client,Channel &channel);
 	void setChannelModes(Client &client, std::vector<std::string> &args);
 	void setUserModes(Client &client, std::vector<std::string> &args);
+	void informOfNewOperator(Client &client);
+	void removeClient(Client *client);
+	void removeOperator(Client *client);
+	void leaveChannel(Client &client, Channel *channel);
 
 
 
@@ -214,6 +224,6 @@ int checkValidChannelName(const std::string &name);
 std:: vector<std::string> split(const std::string& line, const std::string& delimiter);
 std:: vector<std::string> split_args(const std::string& line);
 std::string	intToString(long int num);
-
 void sendmotd(Client &client);
+
 #endif

@@ -69,7 +69,7 @@ int checkValidChannelName(const std::string &name) {
 Client *Server::findClient(const std::string &clientNick){
 	std::vector<Client*>::iterator it = _users.begin();
 	std::vector<Client*>::iterator ite = _users.end();
-	for(; it !=ite; it++){
+	for(; it !=ite; it++) {
 		if ((*it)->getNick() == clientNick)
 			return (*it);
 	}
@@ -85,3 +85,21 @@ Channel *Server::findChannel(const std::string &channelName){
 	}
 	return NULL;
 }
+
+void Server::removeOperator(Client *client) { _operators.erase(client); }
+
+void Server::leaveChannel(Client &client, Channel *channel) {
+	if (!channel)
+		return;
+	channel->deleteUser(client);
+	channel->deleteOperator(client);
+	if(!channel->getNumUsers()){  //remove channel if no users
+		std::vector<Channel *>::iterator itCh = _channels.begin();
+		std::vector<Channel *>::iterator iteCh = _channels.end();
+		for (; itCh != iteCh; itCh++) {
+			if ((*itCh)->getChannelName() == channel->getChannelName())
+				_channels.erase(itCh);
+		}
+	}
+}
+

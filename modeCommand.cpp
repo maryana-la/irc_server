@@ -104,10 +104,10 @@ void Server::setUserModes(Client &client, std::vector<std::string> &args) {
 	for (; it != args[2].end(); it++) {
 		switch (*it) {
 			case 'o':
-				if (!isServerOperator(&client))
+				if (!isServerOperator(&client)) /* check if requester is operator */
 					throw static_cast<std::string>(ERR_USERSDONTMATCH(client.getNick()));
 				if (args[2][0] == '-')
-					_operators.erase(ClientToUpd);
+					removeOperator(ClientToUpd);
 				break;
 			case 'i':
 				if (args[2][0] == '-')
@@ -138,12 +138,3 @@ bool Server::isServerOperator(Client *client) {
 	}
 	return false;
 }
-
-
-
-//MODE #AS +t
-//:IRC.1 324 QW #AS [+nt]
-//:QW!QW@127.0.0.1 MODE #AS +t
-//
-//MODE ZX +i
-//:IRC.1 221 ZX [+i]

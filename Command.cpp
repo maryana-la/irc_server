@@ -32,8 +32,6 @@ void Server::parser(Client *client, std::string msg) {
 				joinExec(*client, args);
 			else if (args[0] == "LIST" || args[0] == "list")
 				listExec(*client, args);
-			else if (args[0] == "LIST1" || args[0] == "list1")
-				EXTRAlistExec(*client, args);
 			else if (args[0] == "PRIVMSG" || args[0] == "privmsg")
 				privmsgExec(*client, args);
 			else if (args[0] == "PING" || args[0] == "ping")
@@ -46,6 +44,14 @@ void Server::parser(Client *client, std::string msg) {
 				kickExec(*client, args);
 			else if (args[0] == "MODE" || args[0] == "mode")
 				modeExec(*client, args);
+			else if (args[0] == "NAMES" || args[0] == "names")
+				namesExec(*client, args);
+			else if (args[0] == "OPER" || args[0] == "oper")
+				operExec(*client, args);
+			else if (args[0] == "QUIT" || args[0] == "quit")
+				quitExec(*client, args);
+			else if (args[0] == "KILL" || args[0] == "kill")
+				killExec(*client, args);
 
 
 
@@ -88,6 +94,7 @@ void Server::joinExec(Client &client, std::vector<std::string> &args) {
 	std::vector<std::string>::iterator chIt = channels.begin();
 	std::vector<std::string>::iterator chIte = channels.end();
 
+	//todo send announcment to everybody in channel about new user
 	for (int i = 0; chIt != chIte; chIt++, i++) {
 		if (!checkValidChannelName(channels[i]))
 			throw static_cast<std::string>(ERR_NOSUCHCHANNEL(client.getNick(), channels[i]));
@@ -99,7 +106,6 @@ void Server::joinExec(Client &client, std::vector<std::string> &args) {
 			for (; it != ite; it++) {
 				/* if channel found */
 				if ((*it)->getChannelName() == channels[i]) {
-					//todo check if invite only/invitation
 					if ((*it)->getKeyStatus()) {
 						if (keys.size() <= i || (*it)->getKey() != keys[i])
 							throw static_cast<std::string>(ERR_BADCHANNELKEY(client.getNick(), channels[i]));
@@ -126,6 +132,8 @@ void Server::joinExec(Client &client, std::vector<std::string> &args) {
 				_channels.push_back(tmp);
 				sendTopic(client, channels[i]);
 				sendUsers(client, *tmp);
+				sendMessage(RPL_ENDOFNAMES(client.getNick(), tmp->getChannelName()), client.getSockFd());
+				delete tmp;
 			}
 		}
 	}
@@ -133,8 +141,7 @@ void Server::joinExec(Client &client, std::vector<std::string> &args) {
 
 void Server::sendUsers(Client &client, Channel &channel) {
 	sendMessage(RPL_NAMREPLY(client.getNick(), channel.getChannelName(),
-							 channel.sendUserList()), client.getSockFd());
-	sendMessage(RPL_ENDOFNAMES(client.getNick(), channel.getChannelName()), client.getSockFd());
+							 channel.sendUserList(channel.isChannelUser(&client))), client.getSockFd());
 }
 
 void Server::listExec(Client &client, std::vector<std::string> &args) {
@@ -159,37 +166,6 @@ void Server::listExec(Client &client, std::vector<std::string> &args) {
 	}
 	sendMessage(RPL_LISTEND(client.getNick()), client.getSockFd());
 }
-
-
-/* extra list to print channel members*/
-
-void Server::EXTRAlistExec(Client &client, std::vector<std::string> &args) {
-//todo check private and hidden attributes
-	sendMessage(RPL_LISTSTART(client.getNick()), client.getSockFd());
-	/* if list without arguments */
-	if (args.size() == 1) {
-		std::vector<Channel*>::iterator it = _channels.begin();
-		std::vector<Channel*>::iterator ite = _channels.end();
-		for(; it !=ite; it++) {
-			std::string names;
-			names = (*it)->sendUserList();
-			sendMessage(RPL_LIST(client.getNick(), (*it)->getChannelName(), intToString((*it)->getNumUsers()),
-								 names), client.getSockFd());
-		}
-	}
-	/* if channels specified */
-	else if (args.size() == 2) {
-		std::vector<std::string> channs = split(args[1], ",");
-		std::vector<std::string>::iterator itCh = channs.begin();
-		std::vector<std::string>::iterator iteCh = channs.end();
-		for (; itCh != iteCh; itCh++) {
-			if (Channel* tmp = findChannel(*itCh))
-				sendMessage(RPL_LIST(client.getNick(),tmp->getChannelName(), intToString((tmp)->getNumUsers()), tmp->getTopic()), client.getSockFd());
-		}
-	}
-	sendMessage(RPL_LISTEND(client.getNick()), client.getSockFd());
-}
-
 
 void Server::sendTopic(Client &client, const std::string& channelName) {
 	std::vector<std::string> forTopic;
@@ -228,8 +204,6 @@ void Server::topicExec(Client &client, std::vector<std::string> &args) {
 
 void Server::privmsgExec(Client &client, std::vector<std::string> &args) {
 
-	
-	
 	if(args[1].empty())
 		throw static_cast<std::string>(ERR_NORECIPIENT(client.getNick(), args[0]));
 	if(args[2].empty())
@@ -290,21 +264,9 @@ void Server::partExec (Client &client, std::vector<std::string> &args) {
 		Channel *channel = findChannel(*it);
 		if(!channel)
 			throw static_cast<std::string>(ERR_NOSUCHCHANNEL(client.getNick(),(*it)));
-
 		if(!channel->isChannelUser(&client))
 			throw static_cast<std::string>(ERR_NOTONCHANNEL(client.getNick(), channel->getChannelName()));
-		
-		channel->deleteUser(client);
-		channel->deleteOperator(client);
-		
-		if(!channel->getNumUsers()){ //remove channel if no users
-			std::vector<Channel *>::iterator itCh = _channels.begin();
-			std::vector<Channel *>::iterator iteCh = _channels.end();
-			for (; itCh != iteCh; itCh++) {
-				if ((*itCh)->getChannelName() == channel->getChannelName())
-					_channels.erase(itCh);
-			}
-		}
+		leaveChannel(client, channel);
 	}
 }
 
