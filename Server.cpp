@@ -110,8 +110,8 @@ void Server::acceptProcess() {
 				if (fcntl(clientSocket, F_SETFL, O_NONBLOCK) == -1) {
 					throw std::runtime_error("fcntl error");
 				}
-				std::cout << "cs:" << clientSocket << std::endl;
-				std::cout << "sfd:" << this->_socketFd << std::endl;
+				std::cout << "new fd:" << clientSocket << std::endl;
+//				std::cout << "sfd:" << this->_socketFd << std::endl;
 				Client *user = new Client(clientSocket);
 				this->_users.push_back(user);
 			} else { ///нужно принять данные не с основного сокета, который мы слушаем(клиентского?)
@@ -156,7 +156,7 @@ std::string Server::recvMessage(int fd) {
 	memset(message, '\0', sizeof(message));
 	recvByte = recv(fd, message, sizeof(message), 0);
 	if (recvByte <= 0) {
-		throw std::runtime_error("recv < 0");
+		throw std::runtime_error("fd " + std::to_string(fd) + " disconnected");
 	}
 	std::cout << "from fd" << fd << ": " << message << "" << std::endl;
 	return (message);

@@ -382,7 +382,7 @@ void Server::kickExec (Client &client, std::vector<std::string> &args) {
 	std::vector<std::string>::iterator itCh = chans.begin();
 	std::vector<std::string>::iterator iteCh = chans.end();
 
-	std::vector<std::string> users = split(args[1],",");
+	std::vector<std::string> users = split(args[2],",");
 
 
 	for(; itCh !=iteCh; itCh++){
@@ -405,7 +405,8 @@ void Server::kickExec (Client &client, std::vector<std::string> &args) {
 
 			if(!channel->isChannelUser(user))
 				throw static_cast<std::string>(ERR_NOTONCHANNEL(client.getNick(), channel->getChannelName()));
-
+			if(&client == user)
+				throw ("Cant kick myself, use PART\n");
 			channel->deleteUser(*user);
 			channel->deleteOperator(*user);
 
@@ -417,19 +418,6 @@ void Server::kickExec (Client &client, std::vector<std::string> &args) {
 						_channels.erase(itChLast);
 				}
 			}
-
 		}
-
-
-
-
-
-
-
-
-
-
-
 	}
-
 }
