@@ -11,4 +11,5 @@ add_executable(ft_irc
         registrationCMD.cpp
         Channel.cpp
         Client.cpp
+        modeCommand.cpp
         )

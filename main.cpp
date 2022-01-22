@@ -6,7 +6,7 @@ int main(int argc, char **argv) {
 		exit(1);
 	}
 	//todo add try/catch for server init/start
-	Server server(new std::string("10.21.34.84"), argv[1], argv[2]);
+	Server server(NULL, argv[1], argv[2]);
 	server.init();
 	server.start();
 }

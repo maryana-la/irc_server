@@ -9,6 +9,7 @@ Channel::Channel(const std::string& channel_name, Client &user) : _name(channel_
 	_inviteOnlyFlag = false;
 	_keyFlag = false;
 	_topicOperOnly = false;
+	_maxUsersFlag =false;
 };
 
 Channel::Channel(const std::string& channel_name, const std::string& key, Client &user) :
@@ -20,32 +21,34 @@ Channel::Channel(const std::string& channel_name, const std::string& key, Client
 	_inviteOnlyFlag = false;
 	_keyFlag = true;
 	_topicOperOnly = false;
+	_maxUsersFlag =false;
 }
 
 std::string Channel::getChannelName() const { return _name; }
 std::string Channel::getTopic() const { return _topic; };
 std::string Channel::getKey() const { return _key; };
 int 		Channel::getNumUsers() const { return static_cast<int>(_users.size()); }
-int			Channel::getMaxUsers() const { return _maxUsers; }
+long int	Channel::getMaxUsers() const { return _maxUsers; }
 bool 		Channel::getKeyStatus() const { return _keyFlag; }
 bool 		Channel::getTopicOperatorsOnly() const { return _topicOperOnly; }
 bool 		Channel::getInviteOnlyFlag() const { return _inviteOnlyFlag; }
+bool 		Channel::getMaxUsersFlag() const { return _maxUsersFlag; }
 
 
 void Channel::addUser(Client &user) {
 	/* check is channel is not full */
-	if (getNumUsers() >= _maxUsers)
+	if (getMaxUsersFlag() && getNumUsers() >= _maxUsers)
 		throw ERR_CHANNELISFULL(user.getNick(), _name);
 
-	/* check if user is banned (nickname, username, host) */
-	std::vector<Client *>::iterator it = _banned.begin();
-	std::vector<Client *>::iterator ite = _banned.end();
-	for (; it != ite; it++) {
-		if ((*it)->getNick() == user.getNick() &&
-			(*it)->getUsername() == user.getUsername() &&
-			(*it)->getHost() == user.getHost())
-			throw ERR_BANNEDFROMCHAN(user.getNick(), _name);
-	}
+//	/* check if user is banned (nickname, username, host) */
+//	std::vector<Client *>::iterator it = _banned.begin();
+//	std::vector<Client *>::iterator ite = _banned.end();
+//	for (; it != ite; it++) {
+//		if ((*it)->getNick() == user.getNick() &&
+//			(*it)->getUsername() == user.getUsername() &&
+//			(*it)->getHost() == user.getHost())
+//			throw ERR_BANNEDFROMCHAN(user.getNick(), _name);
+//	}
 
 	/* check if already in group */
 	std::vector<Client *>::iterator itU = _users.begin();
@@ -130,6 +133,7 @@ void Channel::setKey(std::string &password) { _key = password; }
 
 void Channel::setKeyFlag(bool status) { _keyFlag = status; }
 
+void Channel::setMaxUsersFlag(bool status) { _maxUsersFlag = status; }
 
 void Channel::sendMsgToChan(const std::string &message, Client *client)
 {
@@ -141,3 +145,15 @@ void Channel::sendMsgToChan(const std::string &message, Client *client)
 			sendMessage(message, (*it)->getSockFd());
 	}
 }
+
+//std::string Channel::printChannelUsers() {
+//	std::vector<Client *>::iterator it = _users.begin();
+//	std::vector<Client *>::iterator ite = _users.end();
+//	std::string users;
+//	for (; it != ite; it++) {
+//		if (it != _users.begin())
+//			users += ", ";
+//		users += (*it)->getNick();
+//	}
+//	return users;
+//}
