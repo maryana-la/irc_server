@@ -2,7 +2,7 @@
 
 
 void sendMessage(const std::string &msg, int socket_fd) {
-	std::cout << "To fd " << socket_fd << ": \"" << msg << "\"\n";
+	std::cout << "To fd " << socket_fd << " \"" << msg;
 	send(socket_fd, msg.c_str(), msg.length(), 0);
 }
 

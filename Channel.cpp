@@ -6,7 +6,7 @@ Channel::Channel(const std::string& channel_name, Client &user) : _name(channel_
 	_maxUsers = 30;
 	_users.push_back(&user);
 	_operators.insert(&user);
-	_inviteOnlyFlag = false;
+//	_inviteOnlyFlag = false;
 	_keyFlag = false;
 	_topicOperOnly = false;
 	_maxUsersFlag =false;
@@ -18,7 +18,7 @@ Channel::Channel(const std::string& channel_name, const std::string& key, Client
 	_maxUsers = 30;
 	_users.push_back(&user);
 	_operators.insert(&user);
-	_inviteOnlyFlag = false;
+//	_inviteOnlyFlag = false;
 	_keyFlag = true;
 	_topicOperOnly = false;
 	_maxUsersFlag =false;
@@ -31,7 +31,7 @@ int 		Channel::getNumUsers() const { return static_cast<int>(_users.size()); }
 long int	Channel::getMaxUsers() const { return _maxUsers; }
 bool 		Channel::getKeyStatus() const { return _keyFlag; }
 bool 		Channel::getTopicOperatorsOnly() const { return _topicOperOnly; }
-bool 		Channel::getInviteOnlyFlag() const { return _inviteOnlyFlag; }
+//bool 		Channel::getInviteOnlyFlag() const { return _inviteOnlyFlag; }
 bool 		Channel::getMaxUsersFlag() const { return _maxUsersFlag; }
 
 
@@ -122,7 +122,7 @@ void Channel::setTopic(const std::string &topic) { _topic = topic; }
 
 void Channel::setTopicOperOnly(bool status) { _topicOperOnly = status; }
 
-void Channel::setInviteOnlyFlag (bool status) { _inviteOnlyFlag = status; }
+//void Channel::setInviteOnlyFlag (bool status) { _inviteOnlyFlag = status; }
 
 void Channel::setMaxUsers (long int num) {
 	if (num > 0)
