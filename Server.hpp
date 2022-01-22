@@ -131,7 +131,7 @@ public:
 	bool isChannelUser (Client *client);
 
 
-	void sendMsgToChan (const std::string &message);
+	void sendMsgToChan(const std::string &message, Client *client);
 };
 
 
@@ -196,7 +196,7 @@ public:
 	void modeExec(Client &client, std::vector<std::string> &args);
 	void pingExec(Client &client, std::vector<std::string> &args);
 	void partExec (Client &client, std::vector<std::string> &args);
-
+	void kickExec (Client &client, std::vector<std::string> &args);
 
 	/*
 	 * Server Utils

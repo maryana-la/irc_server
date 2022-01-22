@@ -26,6 +26,7 @@ void Server::init() {
 	hints.ai_family = AF_UNSPEC;     // неважно, IPv4 или IPv6
 	hints.ai_socktype = SOCK_STREAM; // TCP stream-sockets
 	hints.ai_flags = AI_PASSIVE;     // заполните мой IP-адрес за меня
+//	getaddrinfo("10.21.34.84", _port.c_str(), &hints, &servinfo) != 0)
 
 	if (getaddrinfo(this->_host ? this->_host->c_str() : nullptr, this->_port.c_str(), &hints, &serverInfo) != 0) {
 		throw std::runtime_error("getaddrinfo error");
