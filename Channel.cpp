@@ -6,7 +6,6 @@ Channel::Channel(const std::string& channel_name, Client &user, const std::strin
 	_maxUsers = 30;
 	_users.push_back(&user);
 	_operators.insert(&user);
-//	_inviteOnlyFlag = false;
 	_keyFlag = false;
 	_topicOperOnly = false;
 	_maxUsersFlag =false;
@@ -18,7 +17,6 @@ Channel::Channel(const std::string& channel_name, const std::string& key, Client
 	_maxUsers = 30;
 	_users.push_back(&user);
 	_operators.insert(&user);
-//	_inviteOnlyFlag = false;
 	_keyFlag = true;
 	_topicOperOnly = false;
 	_maxUsersFlag =false;
@@ -31,7 +29,6 @@ int 		Channel::getNumUsers() const { return static_cast<int>(_users.size()); }
 long int	Channel::getMaxUsers() const { return _maxUsers; }
 bool 		Channel::getKeyStatus() const { return _keyFlag; }
 bool 		Channel::getTopicOperatorsOnly() const { return _topicOperOnly; }
-//bool 		Channel::getInviteOnlyFlag() const { return _inviteOnlyFlag; }
 bool 		Channel::getMaxUsersFlag() const { return _maxUsersFlag; }
 
 
@@ -39,17 +36,6 @@ void Channel::addUser(Client &user) {
 	/* check is channel is not full */
 	if (getMaxUsersFlag() && getNumUsers() >= _maxUsers)
 		throw ERR_CHANNELISFULL(user.getNick(), _name);
-
-//	/* check if user is banned (nickname, username, host) */
-//	std::vector<Client *>::iterator it = _banned.begin();
-//	std::vector<Client *>::iterator ite = _banned.end();
-//	for (; it != ite; it++) {
-//		if ((*it)->getNick() == user.getNick() &&
-//			(*it)->getUsername() == user.getUsername() &&
-//			(*it)->getHost() == user.getHost())
-//			throw ERR_BANNEDFROMCHAN(user.getNick(), _name);
-//	}
-
 	/* check if already in group */
 	std::vector<Client *>::iterator itU = _users.begin();
 	std::vector<Client *>::iterator iteU = _users.end();

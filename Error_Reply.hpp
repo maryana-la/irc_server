@@ -42,7 +42,7 @@
 #define ERR_YOUREBANNEDCREEP						":IRC 465 * :You are banned from this server\r\n"
 #define ERR_KEYSET(channel)							":IRC 467 * #" + channel + " :Channel key already set\r\n"
 #define ERR_CHANNELISFULL(nick, channel)			":IRC 471 " + nick + " " + channel + " :Cannot join channel (+l)\r\n"
-#define ERR_UNKNOWNMODE(nick, char)					":IRC 472 " + nick + " " +  char + " :is unknown mode char to me\r\n"
+#define ERR_UNKNOWNMODE(nick, flags)				":IRC 472 " + nick + " " +  flags + " :is unknown mode char to me\r\n"
 #define ERR_INVITEONLYCHAN(channel)					":IRC 473 * #" + channel + " :Cannot join channel (+i)\r\n"
 #define ERR_BANNEDFROMCHAN(nick, channel)			":IRC 474 " + nick + " " + channel + " :Cannot join channel (+b)\r\n"
 #define ERR_BADCHANNELKEY(nick, channel)			":IRC 475 " + nick + " " + channel + " :Cannot join channel (+k)\r\n"

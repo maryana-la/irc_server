@@ -3,7 +3,7 @@
 
 void sendMessage(const std::string &msg, int socket_fd) {
 	std::cout << "To fd " << socket_fd << ": \"" << msg;
-	send(socket_fd, msg.c_str(), msg.length(), 0);
+	send(socket_fd, msg.c_str(), msg.length(), IRC_NOSIGNAL);
 }
 
 
@@ -108,7 +108,8 @@ void Server::leaveChannel(Client &client, Channel *channel) {
 void Server::standartReply(Client &client, Channel *channel, std::string command) {
 	std::string msg;
 	msg = ":" + client.getNick() + "!" + client.getUsername() + "@" + getHost() + " " + command + " :" + channel->getChannelName() + "\n\r";
-	sendMessage(msg, client.getSockFd());
 	channel->sendMsgToChan(msg, &client);
+	sendMessage(msg, client.getSockFd());
+
 }
 

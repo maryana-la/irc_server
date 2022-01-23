@@ -10,23 +10,22 @@
 # include <set>
 # include <map>
 
+# include <sys/poll.h>
 # include <sys/socket.h>
 # include <arpa/inet.h>
 # include <netdb.h>
 # include <fcntl.h>
 # include <unistd.h>
 # include <poll.h>
-#include <algorithm>
+# include <cstdlib>
+# include <algorithm>
+
+# define IRC_NOSIGNAL SO_NOSIGPIPE //from levensta
 
 # include "Error_Reply.hpp"
 
-# define LOCALHOST "127.0.0.1"
-#define MAX_CONNECTION	1024
-
 #define NICK_VALIDSET		"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890-_[]{}\'|"
-#define CHANNEL_VALIDSET	"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890-_[]{}\'| "
 
-class Command;
 class Channel;
 class Server;
 class Client;
@@ -84,8 +83,6 @@ private:
 	long int				_maxUsers;
 	std::vector<Client *>	_users;
 	std::set<Client *>		_operators;
-//	std::vector<Client *>	_banned;
-//	bool 					_inviteOnlyFlag;
 	bool 					_keyFlag;
 	bool 					_topicOperOnly;
 	bool 					_maxUsersFlag;
@@ -106,7 +103,6 @@ public:
 	long int	getMaxUsers() const;
 	bool 		getKeyStatus() const;
 	bool 		getTopicOperatorsOnly() const;
-//	bool 		getInviteOnlyFlag() const;
 	bool 		getMaxUsersFlag() const;
 
 
@@ -115,7 +111,6 @@ public:
 	 */
 	void setTopic (const std::string &topic);
 	void setTopicOperOnly(bool status);
-//	void setInviteOnlyFlag (bool status);
 	void setMaxUsers (long int num);
 	void setKey(std::string &password);
 	void setKeyFlag(bool status);
@@ -135,18 +130,10 @@ public:
 	bool isOperator(Client *client);
 	bool isChannelUser (Client *client);
 
-//	std::string printChannelUsers(); //todo delete
 	void sendMsgToChan(const std::string &message, Client *client);
 	void receiveMsgOfAllChannelUsers(Client &client, Channel *channel);
 
 };
-
-
-#include <string>
-#include <iostream>
-#include <sys/poll.h>
-#include <vector>
-
 
 class Server{
 private:
@@ -161,10 +148,10 @@ private:
 	std::map<std::string, std::string> _operator_login;
 	int _maxNumberOfChannels;
 
-	typedef void(Server::*command)(std::vector<std::string> &args, Client &user);
-
-	std::vector<command> commands;
-	std::vector<std::string> commandsName;
+//	typedef void(Server::*command)(std::vector<std::string> &args, Client &user);
+//
+//	std::vector<command> commands;
+//	std::vector<std::string> commandsName;
 
 public:
 	Server(const std::string &host, const std::string &port, const std::string &password);
@@ -205,6 +192,8 @@ public:
 	void operExec(Client &client, std::vector<std::string> &args);
 	void quitExec(Client &client, std::vector<std::string> &args);
 	void killExec(Client &client, std::vector<std::string> &args);
+
+	void exitExec() { exit(10);}
 
 	/*
 	 * Server Utils

@@ -8,13 +8,13 @@ void Server::modeExec(Client &client, std::vector<std::string> &args) {
 	/* check number if +- in flag argument */
 //	size_t tmp = args[2].find_first_of("+-");
 	if (args[2][0] != '+' && args[2][0] != '-')
-		throw static_cast<std::string>(ERR_UNKNOWNMODE(client.getNick(), args[2][0]));
+		throw static_cast<std::string>(ERR_UNKNOWNMODE(client.getNick(), args[2]));
 
 
 	/* if channel */
 	if (args[1].find_first_of("&#+!") == 0) {
 		if (args[2].find_first_not_of("+-oitlk") != std::string::npos)
-			throw static_cast<std::string>(ERR_UMODEUNKNOWNFLAG(client.getNick(), args[1]));
+			throw static_cast<std::string>(ERR_UNKNOWNMODE(client.getNick(), args[2]));
 		setChannelModes(client, args);
 	}
 	/* if user */

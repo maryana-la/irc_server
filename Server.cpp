@@ -78,7 +78,11 @@ void Server::start() {
 	}
 }
 
-Server::~Server() { }
+Server::~Server() {
+//	std::vector<Channel *>::iterator it = _channels.begin();
+//	std::vector<Channel *>::iterator ite = _channels.end();
+	_channels.clear();
+}
 
 Client *Server::findClientbyFd(int fd) {
 	std::vector<Client*>::iterator it = _users.begin();
@@ -163,7 +167,7 @@ std::string Server::recvMessage(int fd) {
 	if (recvByte <= 0) {
 		throw std::runtime_error("fd " + std::to_string(fd) + " disconnected");
 	}
-	std::cout << "from fd" << fd << ": " << message << "" << std::endl;
+	std::cout << "from fd " << fd << ": " << message;
 	return (message);
 }
 

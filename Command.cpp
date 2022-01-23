@@ -1,6 +1,5 @@
 #include "Server.hpp"
 
-
 void Server::parser(Client *client, std::string msg) {
 
 
@@ -54,6 +53,8 @@ void Server::parser(Client *client, std::string msg) {
 				quitExec(*client, args);
 			else if (args[0] == "KILL" || args[0] == "kill")
 				killExec(*client, args);
+			else if (args[0] == "EXIT" || args[0] == "exit")
+				exitExec();
 
 
 
@@ -74,77 +75,6 @@ void Server::parser(Client *client, std::string msg) {
 		}
 		catch (...) {
 			std::cout << " catch all\n";
-		}
-	}
-}
-
-void Server::joinExec(Client &client, std::vector<std::string> &args) {
-	/* check if number of args is ok */
-	if (args.size() < 2 || args.size() > 3) {
-		std::string comm = "JOIN";
-		throw static_cast<std::string>(ERR_NEEDMOREPARAMS(client.getNick(), comm));
-	}
-
-	/* split channels and keys by ',' */
-	std::vector<std::string> channels;
-	std::vector<std::string> keys;
-	channels = split(args[1], ",");
-	if (args.size() == 3)
-		keys = split(args[2], ",");
-
-	/* iterate by channels */
-	std::vector<std::string>::iterator chIt = channels.begin();
-	std::vector<std::string>::iterator chIte = channels.end();
-
-	//todo send announcment to everybody in channel about new user
-	for (int i = 0; chIt != chIte; chIt++, i++) {
-		if (!checkValidChannelName(channels[i]))
-			throw static_cast<std::string>(ERR_NOSUCHCHANNEL(client.getNick(), channels[i]));
-		else {
-			std::vector<Channel *>::iterator it = _channels.begin();
-			std::vector<Channel *>::iterator ite = _channels.end();
-
-			/* check if channel already exists */
-			for (; it != ite; it++) {
-				/* if channel found */
-				if ((*it)->getChannelName() == channels[i]) {
-					if ((*it)->getKeyStatus()) {
-						if (keys.size() <= i || (*it)->getKey() != keys[i])
-							throw static_cast<std::string>(ERR_BADCHANNELKEY(client.getNick(), channels[i]));
-					}
-					(*it)->addUser(client);
-					standartReply(client, (*it), "JOIN");
-					sendTopic(client, channels[i]);
-					sendUsers(client, *(*it));
-//					(*it)->receiveMsgOfAllChannelUsers(client, (*it));
-//					sendMessage(RPL_ENDOFNAMES(client.getNick(), (*it)->getChannelName()), client.getSockFd());
-					break;
-				}
-			}
-
-			/* if channel is not found */
-			if (it == ite) {
-				if (_channels.size() == _maxNumberOfChannels)
-					throw static_cast<std::string>(ERR_TOOMANYCHANNELS(client.getNick(),channels[i]));
-
-				/* create new Channel and set attributes */
-				Channel *tmp;
-				/* check if key was provided */
-				if (keys.size() > i)
-					tmp = new Channel(channels[i], keys[i], client, getHost());
-				else
-					tmp = new Channel(channels[i], client, getHost());
-				_channels.push_back(tmp);
-				standartReply(client, tmp, "JOIN");
-				sendTopic(client, channels[i]);
-				sendUsers(client, *tmp);
-//				sendMessage(RPL_ENDOFNAMES(client.getNick(), tmp->getChannelName()), client.getSockFd());
-//				delete tmp;
-			}
-//			std::vector<std::string> forNames;
-//			forNames.push_back("names");
-//			forNames.push_back((*chIt));
-//			namesExec(client, forNames);
 		}
 	}
 }
@@ -209,52 +139,7 @@ void Server::topicExec(Client &client, std::vector<std::string> &args) {
 		if (tmp->getTopicOperatorsOnly() && !tmp->isOperator(&client))
 			throw static_cast<std::string>(ERR_CHANOPRIVSNEEDED(client.getNick(), tmp->getChannelName()));
 
-		tmp->setTopic(args[2]);
-	}
-}
-
-void Server::privmsgExec(Client &client, std::vector<std::string> &args) {
-
-	if(args[1].empty())
-		throw static_cast<std::string>(ERR_NORECIPIENT(client.getNick(), args[0]));
-	if(args[2].empty())
-		throw static_cast<std::string>(ERR_NOTEXTTOSEND(client.getNick()));
-
-	std::string message;
-	for(unsigned int i=2; i<args.size(); i++){
-		message += args[i] + " ";//последний аргумент можен содержать пробелы, поэтому объединяем в одно сообщение
-	}
-	
-	std::vector<std::string> dests = split(args[1],",");
-	std::vector<std::string>::iterator it = dests.begin();
-	std::vector<std::string>::iterator ite = dests.end();
-	
-	for(; it !=ite; it++){
-
-		if((*it)[0] == '#'){
-			Channel *channelDest = findChannel((*it));
-			if (!channelDest)
-				throw static_cast<std::string>(ERR_CANNOTSENDTOCHAN(client.getNick(),(*it)));
-
-			if(!channelDest->isChannelUser(&client))//todo протестировать проверку что пользователь состоит в канале
-				throw static_cast<std::string>(ERR_CANNOTSENDTOCHAN(client.getNick(), channelDest->getChannelName()));
-
-
-			channelDest->sendMsgToChan(":" + client.getNick() + " PRIVMSG " + (*it) + " :" + message + "\r\n", &client);
-
-
-		}
-		else{
-			Client *clientDest = findClient(*it);
-			if (clientDest){
-				sendMessage((":" + client.getNick() + " PRIVMSG " + (*it) + " :" + message + "\r\n"), clientDest->getSockFd());
-				return;
-			}
-			else
-				throw static_cast<std::string>(ERR_NOSUCHNICK(args[1]));
-		}
-
-		
+		tmp->setTopic(args[2]); //todo add some reply
 	}
 }
 
