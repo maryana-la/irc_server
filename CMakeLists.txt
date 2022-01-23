@@ -12,4 +12,4 @@ add_executable(ft_irc
         Channel.cpp
         Client.cpp
         modeCommand.cpp
-        )
+        serverCommands.cpp)

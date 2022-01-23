@@ -38,7 +38,7 @@
 #define ERR_NEEDMOREPARAMS(nick, command)			":IRC 461 " + nick + " " + command + " :Not enough parameters\r\n"
 #define ERR_ALREADYREGISTRED(nick)					":IRC 462 " + nick + " :You may not reregister\r\n"
 #define ERR_NOPERMFORHOST							":IRC 463 * :Your host isn't among the privileged\r\n"
-#define ERR_PASSWDMISMATCH							":IRC 464 * :Password incorrect\r\n"
+#define ERR_PASSWDMISMATCH(nick)					":IRC 464 " + nick + " :Password incorrect\r\n"
 #define ERR_YOUREBANNEDCREEP						":IRC 465 * :You are banned from this server\r\n"
 #define ERR_KEYSET(channel)							":IRC 467 * #" + channel + " :Channel key already set\r\n"
 #define ERR_CHANNELISFULL(nick, channel)			":IRC 471 " + nick + " " + channel + " :Cannot join channel (+l)\r\n"
@@ -47,11 +47,11 @@
 #define ERR_BANNEDFROMCHAN(nick, channel)			":IRC 474 " + nick + " " + channel + " :Cannot join channel (+b)\r\n"
 #define ERR_BADCHANNELKEY(nick, channel)			":IRC 475 " + nick + " " + channel + " :Cannot join channel (+k)\r\n"
 #define	ERR_BADCHANMASK(channel)					":IRC 476 * #" + channel + " :Bad Channel Mask\r\n"
-#define ERR_NOPRIVILEGES							":IRC 481 * :Permission Denied- You're not an IRC operator\r\n"
+#define ERR_NOPRIVILEGES(nick)						":IRC 481 " + nick + " :Permission Denied- You're not an IRC operator\r\n"
 #define ERR_CHANOPRIVSNEEDED(nick, channel)			":IRC 482 " + nick + " " + channel + " :You're not channel operator\r\n"
 #define ERR_CANTKILLSERVER							":IRC 483 * :You cant kill a server!\r\n"
 #define	ERR_RESTRICTED								":IRC 484 * :Your connection is restricted!\r\n"
-#define ERR_NOOPERHOST								":IRC 491 * :No O-lines for your host\r\n"
+#define ERR_NOOPERHOST(nick)						":IRC 491 " + nick + " :No O-lines for your host\r\n"
 #define ERR_UMODEUNKNOWNFLAG(nick, channel)			":IRC 501 " + nick + " " + channel + " :Unknown MODE flag\r\n"
 #define ERR_USERSDONTMATCH(nick)					":IRC 502 " + nick + " :Cant change mode for other users\r\n"
 
@@ -60,7 +60,7 @@
 
 
 /*
- * unknown comms
+ *  unknown comms
  */
 # define ERR_INVALIDCAP(command) (command + " :Invalid CAP command\r\n")
 # define ERR_NOTOPIC(channel) (channel + " :No topic is set\r\n")
@@ -71,8 +71,8 @@
 
 
 /*
-**  Command responses
-*/
+ *  Command responses
+ */
 
 #define RPL_WELCOME(nick) 							":IRC 001 " + nick + " :Welcome to the Internet Relay Network " + nick + "\r\n"
 # define RPL_UMODEIS(nick, mode) 					":IRC 221 " + nick + " " + mode + "\r\n"
@@ -87,14 +87,12 @@
 #define	RPL_NOTOPIC(nick, channel)					":IRC 331 " + nick + " " + channel + " :No topic is set\r\n"
 #define RPL_TOPIC(nick, channel, topic) 			":IRC 332 "  + nick + " " + channel + " :" + topic + "\r\n"
 #define	RPL_WHOREPLY(channel, usercount, operator)	":IRC 352 * " + channel + " has " + usercount + " users. Operator: " + operator + "\r\n"
-#define RPL_NAMREPLY(nick, channel, users)			":IRC 353 " + nick + " " + channel + " = :" + users + "\r\n"
+#define RPL_NAMREPLY(nick, channel, users)			":IRC 353 " + nick + " " + channel + " :" + users + "\r\n"
 #define RPL_ENDOFNAMES(nick, channel)				":IRC 366 " + nick + " " + channel + " :End of /NAMES list\r\n"
-
-# define RPL_MOTD(nick, comment) 					":IRC 372 " + (nick) + " :- " + comment + "\r\n"
-# define RPL_MOTDSTART(nick) 						":IRC 375 " + (nick) + " :- IRC Message of the day - \r\n"
-# define RPL_ENDOFMOTD(nick) 						":IRC 376 " + (nick) + " :End of MOTD command\r\n"
-
-
+# define RPL_MOTD(nick, comment) 					":IRC 372 " + nick + " :- " + comment + "\r\n"
+# define RPL_MOTDSTART(nick) 						":IRC 375 " + nick + " :- IRC Message of the day - \r\n"
+# define RPL_ENDOFMOTD(nick) 						":IRC 376 " + nick + " :End of MOTD command\r\n"
+# define RPL_YOUREOPER(nick) 						":IRC 381 " + nick + " :You are now an IRC operator\r\n"
 
 #define	RPL_TIME(timestr)							":IRC 391 * " + timestr + "\r\n"
 
@@ -125,7 +123,7 @@
 # define RPL_ENDOFBANLIST(channel) (channel + " :End of list\r\n")
 # define RPL_INFO(info) (":" + info + "\r\n")
 # define RPL_ENDOFINFO() (":End of INFO list\r\n")
-# define RPL_YOUREOPER() (":You are now an IRC operator\r\n")
+
 # define RPL_REHASHING(config_file) (config_file + " :Rehashing\r\n")
 # define RPL_USERSSTART() (":UserID Terminal Hôte\r\n")
 //# define RPL_USERS() (":%-8s %-9s %-8s\r\n")
