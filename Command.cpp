@@ -42,6 +42,8 @@ void Server::parser(Client *client, std::string msg) {
 				partExec(*client, args);
 			else if (args[0] == "KICK" || args[0] == "kick")
 				kickExec(*client, args);
+			else if (args[0] == "PONG" || args[0] == "pong")
+				pongExec(*client, args);
 
 
 
@@ -243,7 +245,11 @@ void Server::privmsgExec(Client &client, std::vector<std::string> &args) {
 }
 
 void Server::pingExec(Client &client, std::vector<std::string> &args){
-	sendMessage(":SERVNAME PONG " + args[1], client.getSockFd());
+	sendMessage(":IRC PONG " + args[1] + "\r\n", client.getSockFd() );
+}
+
+void Server::pongExec(Client &client, std::vector<std::string> &args){
+	sendMessage(":IRC PING " + args[1] + "\r\n", client.getSockFd() );
 }
 
 void Server::modeExec(Client &client, std::vector<std::string> &args) {

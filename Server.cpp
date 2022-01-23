@@ -12,7 +12,7 @@
 
 
 Server::Server(const std::string *host, const std::string &port, const std::string &password)
-		: _socketFd(-1), _host(host), _port(port), _password(password) {}
+		: _socketFd(-1), _host(host), _port(port), _password(password), _maxNumberOfChannels(30) {}
 
 /**
  * создание структуры addrinfo, создание сокета и bind
