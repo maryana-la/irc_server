@@ -44,8 +44,8 @@ void Server::parser(Client *client, std::string msg) {
 				kickExec(*client, args);
 			else if (args[0] == "MODE" || args[0] == "mode")
 				modeExec(*client, args);
-			else if (args[0] == "PONG" || args[0] == "pong")
-				pongExec(*client, args);
+//			else if (args[0] == "PONG" || args[0] == "pong")
+//				pongExec(*client, args);
 			else if (args[0] == "NAMES" || args[0] == "names")
 				namesExec(*client, args);
 			else if (args[0] == "OPER" || args[0] == "oper")
@@ -113,8 +113,11 @@ void Server::joinExec(Client &client, std::vector<std::string> &args) {
 							throw static_cast<std::string>(ERR_BADCHANNELKEY(client.getNick(), channels[i]));
 					}
 					(*it)->addUser(client);
+					standartReply(client, (*it), "JOIN");
 					sendTopic(client, channels[i]);
 					sendUsers(client, *(*it));
+//					(*it)->receiveMsgOfAllChannelUsers(client, (*it));
+//					sendMessage(RPL_ENDOFNAMES(client.getNick(), (*it)->getChannelName()), client.getSockFd());
 					break;
 				}
 			}
@@ -128,15 +131,20 @@ void Server::joinExec(Client &client, std::vector<std::string> &args) {
 				Channel *tmp;
 				/* check if key was provided */
 				if (keys.size() > i)
-					tmp = new Channel(channels[i], keys[i], client);
+					tmp = new Channel(channels[i], keys[i], client, getHost());
 				else
-					tmp = new Channel(channels[i], client);
+					tmp = new Channel(channels[i], client, getHost());
 				_channels.push_back(tmp);
+				standartReply(client, tmp, "JOIN");
 				sendTopic(client, channels[i]);
 				sendUsers(client, *tmp);
-				sendMessage(RPL_ENDOFNAMES(client.getNick(), tmp->getChannelName()), client.getSockFd());
-				delete tmp;
+//				sendMessage(RPL_ENDOFNAMES(client.getNick(), tmp->getChannelName()), client.getSockFd());
+//				delete tmp;
 			}
+//			std::vector<std::string> forNames;
+//			forNames.push_back("names");
+//			forNames.push_back((*chIt));
+//			namesExec(client, forNames);
 		}
 	}
 }
@@ -144,6 +152,7 @@ void Server::joinExec(Client &client, std::vector<std::string> &args) {
 void Server::sendUsers(Client &client, Channel &channel) {
 	sendMessage(RPL_NAMREPLY(client.getNick(), channel.getChannelName(),
 							 channel.sendUserList(channel.isChannelUser(&client))), client.getSockFd());
+	sendMessage(RPL_ENDOFNAMES(client.getNick(), channel.getChannelName()), client.getSockFd());
 }
 
 void Server::listExec(Client &client, std::vector<std::string> &args) {
@@ -258,7 +267,7 @@ void Server::pongExec(Client &client, std::vector<std::string> &args){
 }
 
 void Server::partExec (Client &client, std::vector<std::string> &args) {
-	if(args.size() != 2)
+	if(args.size() < 2)
 		throw static_cast<std::string>(ERR_NEEDMOREPARAMS(client.getNick(), args[0]));
 
 	std::vector<std::string> dests = split(args[1],",");
@@ -308,6 +317,8 @@ void Server::kickExec (Client &client, std::vector<std::string> &args) {
 				throw static_cast<std::string>(ERR_NOTONCHANNEL(client.getNick(), channel->getChannelName()));
 			if(&client == user)
 				throw ("Cant kick myself, use PART\n");
+
+//todo replace with leaveChannel function
 			channel->deleteUser(*user);
 			channel->deleteOperator(*user);
 

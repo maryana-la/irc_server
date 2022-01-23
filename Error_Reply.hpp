@@ -87,7 +87,7 @@
 #define	RPL_NOTOPIC(nick, channel)					":IRC 331 " + nick + " " + channel + " :No topic is set\r\n"
 #define RPL_TOPIC(nick, channel, topic) 			":IRC 332 "  + nick + " " + channel + " :" + topic + "\r\n"
 #define	RPL_WHOREPLY(channel, usercount, operator)	":IRC 352 * " + channel + " has " + usercount + " users. Operator: " + operator + "\r\n"
-#define RPL_NAMREPLY(nick, channel, users)			":IRC 353 " + nick + " " + channel + " :" + users + "\r\n"
+#define RPL_NAMREPLY(nick, channel, users)			":IRC 353 " + nick + " = " + channel + " :" + users + "\r\n"
 #define RPL_ENDOFNAMES(nick, channel)				":IRC 366 " + nick + " " + channel + " :End of /NAMES list\r\n"
 # define RPL_MOTD(nick, comment) 					":IRC 372 " + nick + " :- " + comment + "\r\n"
 # define RPL_MOTDSTART(nick) 						":IRC 375 " + nick + " :- IRC Message of the day - \r\n"

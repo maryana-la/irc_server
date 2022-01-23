@@ -78,6 +78,7 @@ public:
 class Channel {
 private:
 	const std::string 		_name;
+	const std::string 		_host;
 	std::string 			_key;
 	std::string 			_topic;
 	long int				_maxUsers;
@@ -92,8 +93,8 @@ private:
 	Channel() {}
 
 public:
-	Channel(const std::string& channel_name, Client &user);
-	Channel(const std::string& channel_name, const std::string& key, Client &user);
+	Channel(const std::string& channel_name, Client &user, const std::string &host);
+	Channel(const std::string& channel_name, const std::string& key, Client &user, const std::string &host);
 
 	/*
 	 *  GETTERS
@@ -136,6 +137,8 @@ public:
 
 //	std::string printChannelUsers(); //todo delete
 	void sendMsgToChan(const std::string &message, Client *client);
+	void receiveMsgOfAllChannelUsers(Client &client, Channel *channel);
+
 };
 
 
@@ -148,7 +151,7 @@ public:
 class Server{
 private:
 	int _socketFd;
-	const std::string *_host;
+	const std::string _host;
 	const std::string &_port;
 	const std::string &_password;
 	std::vector<pollfd> _fds;
@@ -164,7 +167,7 @@ private:
 	std::vector<std::string> commandsName;
 
 public:
-	Server(const std::string *host, const std::string &port, const std::string &password);
+	Server(const std::string &host, const std::string &port, const std::string &password);
 	virtual ~Server();
 
 	void start();
@@ -175,6 +178,8 @@ public:
 
     void parser(Client *client, std::string msg);
 	bool isServerOperator(Client *client);
+
+	std::string getHost() { return _host; }
 
 
     /*
@@ -215,6 +220,8 @@ public:
 	void removeClient(Client *client);
 	void removeOperator(Client *client);
 	void leaveChannel(Client &client, Channel *channel);
+
+	void standartReply(Client &client, Channel *channel, std::string command);
 
 
 

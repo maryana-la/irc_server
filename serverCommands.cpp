@@ -22,9 +22,10 @@ void Server::namesExec(Client &client, std::vector<std::string> &args) {
 			if (noChannelUsers.empty() && it == ite && !(*itCli)->getInvisibleStatus())
 				noChannelUsers += (*itCli)->getNick();
 			else if (!noChannelUsers.empty() && it == ite && !(*itCli)->getInvisibleStatus())
-				noChannelUsers += ", " + (*itCli)->getNick();
+				noChannelUsers += " " + (*itCli)->getNick();
 		}
 		sendMessage(RPL_NAMREPLY(client.getNick(), "*", noChannelUsers), client.getSockFd());
+		sendMessage(RPL_ENDOFNAMES(client.getNick(), "*"), client.getSockFd());
 	}
 	/* if channels specified */
 	else if (args.size() == 2) {
@@ -32,11 +33,13 @@ void Server::namesExec(Client &client, std::vector<std::string> &args) {
 		std::vector<std::string>::iterator itCh = channs.begin();
 		std::vector<std::string>::iterator iteCh = channs.end();
 		for (; itCh != iteCh; itCh++) {
-			if (Channel* tmp = findChannel(*itCh))
+			if (Channel* tmp = findChannel(*itCh)) {
 				sendUsers(client, *tmp);
+//				sendMessage(RPL_ENDOFNAMES(client.getNick(), "*"), client.getSockFd());
+			}
 		}
 	}
-	sendMessage(RPL_ENDOFNAMES(client.getNick(), "*"), client.getSockFd());
+//	sendMessage(RPL_ENDOFNAMES(client.getNick(), "*"), client.getSockFd());
 }
 
 void Server::operExec(Client &client, std::vector<std::string> &args) {

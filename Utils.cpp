@@ -93,6 +93,7 @@ void Server::leaveChannel(Client &client, Channel *channel) {
 		return;
 	channel->deleteUser(client);
 	channel->deleteOperator(client);
+	standartReply(client, channel, "PART");
 	if(!channel->getNumUsers()){  //remove channel if no users
 		std::vector<Channel *>::iterator itCh = _channels.begin();
 		std::vector<Channel *>::iterator iteCh = _channels.end();
@@ -101,5 +102,13 @@ void Server::leaveChannel(Client &client, Channel *channel) {
 				_channels.erase(itCh);
 		}
 	}
+}
+
+/* client - who made an action, channel - where action was made */
+void Server::standartReply(Client &client, Channel *channel, std::string command) {
+	std::string msg;
+	msg = ":" + client.getNick() + "!" + client.getUsername() + "@" + getHost() + " " + command + " :" + channel->getChannelName() + "\n\r";
+	sendMessage(msg, client.getSockFd());
+	channel->sendMsgToChan(msg, &client);
 }
 

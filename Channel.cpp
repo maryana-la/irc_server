@@ -1,6 +1,6 @@
 #include "Server.hpp"
 
-Channel::Channel(const std::string& channel_name, Client &user) : _name(channel_name) {
+Channel::Channel(const std::string& channel_name, Client &user, const std::string &host) : _name(channel_name), _host(host) {
 	_key = "";
 	_topic = "";
 	_maxUsers = 30;
@@ -12,8 +12,8 @@ Channel::Channel(const std::string& channel_name, Client &user) : _name(channel_
 	_maxUsersFlag =false;
 };
 
-Channel::Channel(const std::string& channel_name, const std::string& key, Client &user) :
-		_name(channel_name), _key(key) {
+Channel::Channel(const std::string& channel_name, const std::string& key, Client &user, const std::string &host) :
+		_name(channel_name), _key(key), _host(host) {
 	_topic = "";
 	_maxUsers = 30;
 	_users.push_back(&user);
@@ -87,7 +87,7 @@ std::string Channel::sendUserList(bool printInvisibleUsers) {
 	for (; it != ite; it++) {
 		if (printInvisibleUsers || !(*it)->getInvisibleStatus()) {
 			if (!userList.empty())
-				userList += ", ";
+				userList += " ";
 			if (isOperator(*it))
 				userList += "@";
 			userList += (*it)->getNick();
@@ -143,5 +143,17 @@ void Channel::sendMsgToChan(const std::string &message, Client *client)
 	for(; it !=ite; it++){
 		if((*it)->getNick() != client->getNick())
 			sendMessage(message, (*it)->getSockFd());
+	}
+}
+
+void Channel::receiveMsgOfAllChannelUsers(Client &client, Channel *channel) {
+
+	std::vector<Client *>::iterator  it = _users.begin();
+	std::vector<Client*>::iterator ite= _users.end();
+	for (; it != ite; it++) {
+		std::string msg;
+		msg = ":" + (*it)->getNick() + "!" + (*it)->getUsername() + "@" + _host + " " + "JOIN" + " :" +
+			  channel->getChannelName() + "\n\r";
+		sendMessage(msg, client.getSockFd());
 	}
 }
