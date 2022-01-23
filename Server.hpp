@@ -45,9 +45,10 @@ private:
 	std::string				_awayMessage;
     bool    _passValid;
     bool    _registered;
+	bool	_isInvisible;
 
 public:
-	Client(int socketFd) : _sockFd(socketFd), _nickname(""), _passValid(false), _registered(false) {}
+	Client(int socketFd) : _sockFd(socketFd), _nickname(""), _passValid(false), _registered(false), _isInvisible(false) {}
 	~Client();
 
     int			getSockFd() const;
@@ -59,6 +60,7 @@ public:
 	std::string getMessage() const;
     bool 		getRegisterStatus() const;
 	bool 		getPassStatus() const;
+	bool 		getInvisibleStatus() const;
     bool 		checkUserStatus() const;
 
     void setNick(const std::string &name);
@@ -68,9 +70,8 @@ public:
 	void setRealName (const std::string &name);
 	void setPassStatus();
 	void setRegisterStatus();
+	void setInvisibleStatus(bool status);
 
-	void		clearMessage();
-	void		appendMessage(std::string message);
 };
 
 class Channel {
@@ -78,14 +79,14 @@ private:
 	const std::string 		_name;
 	std::string 			_key;
 	std::string 			_topic;
-
 	long int				_maxUsers;
 	std::vector<Client *>	_users;
 	std::set<Client *>		_operators;
-	std::vector<Client *>	_banned;
-	bool 					_inviteOnlyFlag;
+//	std::vector<Client *>	_banned;
+//	bool 					_inviteOnlyFlag;
 	bool 					_keyFlag;
 	bool 					_topicOperOnly;
+	bool 					_maxUsersFlag;
 
 	Channel() {}
 
@@ -100,10 +101,11 @@ public:
 	std::string getTopic() const;
 	std::string getKey() const;
 	int 		getNumUsers() const;
-	int			getMaxUsers() const;
+	long int	getMaxUsers() const;
 	bool 		getKeyStatus() const;
 	bool 		getTopicOperatorsOnly() const;
-	bool 		getInviteOnlyFlag() const;
+//	bool 		getInviteOnlyFlag() const;
+	bool 		getMaxUsersFlag() const;
 
 
 	/*
@@ -111,10 +113,11 @@ public:
 	 */
 	void setTopic (const std::string &topic);
 	void setTopicOperOnly(bool status);
-	void setInviteOnlyFlag (bool status);
+//	void setInviteOnlyFlag (bool status);
 	void setMaxUsers (long int num);
 	void setKey(std::string &password);
 	void setKeyFlag(bool status);
+	void setMaxUsersFlag(bool status);
 
 
 	/*
@@ -130,7 +133,7 @@ public:
 	bool isOperator(Client *client);
 	bool isChannelUser (Client *client);
 
-
+//	std::string printChannelUsers(); //todo delete
 	void sendMsgToChan(const std::string &message, Client *client);
 };
 
@@ -150,6 +153,7 @@ private:
 	std::vector<pollfd> _fds;
 	std::vector<Client *> _users;
 	std::vector<Channel *> _channels;
+	std::set<Client *> _operators;
 	int _maxNumberOfChannels;
 
 	typedef void(Server::*command)(std::vector<std::string> &args, Client &user);
@@ -158,27 +162,19 @@ private:
 	std::vector<std::string> commandsName;
 
 public:
-	
 	Server(const std::string *host, const std::string &port, const std::string &password);
-
 	virtual ~Server();
 
 	void start();
-
 	void init();
-
 	void acceptProcess();
-
 	std::string recvMessage(int fd);
-
 	Client *findUserByFd(int fd);
-
-
-
 
 
 	void removeUser(Client *user);
     void parser(Client *client, std::string msg);
+	bool isServerOperator(Client *client);
 
 
     /*
@@ -190,6 +186,7 @@ public:
 
 	void joinExec(Client &client, std::vector<std::string> &args);
 	void listExec(Client &client, std::vector<std::string> &args);
+	void EXTRAlistExec(Client &client, std::vector<std::string> &args); //todo delete
 	void topicExec(Client &client, std::vector<std::string> &args);
 
 	void privmsgExec(Client &client, std::vector<std::string> &args);
@@ -207,6 +204,7 @@ public:
 	void sendTopic(Client &client, const std::string& channelName);
 	void sendUsers(Client &client,Channel &channel);
 	void setChannelModes(Client &client, std::vector<std::string> &args);
+	void setUserModes(Client &client, std::vector<std::string> &args);
 
 
 

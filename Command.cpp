@@ -42,6 +42,8 @@ void Server::parser(Client *client, std::string msg) {
 				partExec(*client, args);
 			else if (args[0] == "KICK" || args[0] == "kick")
 				kickExec(*client, args);
+			else if (args[0] == "MODE" || args[0] == "mode")
+				modeExec(*client, args);
 			else if (args[0] == "PONG" || args[0] == "pong")
 				pongExec(*client, args);
 
