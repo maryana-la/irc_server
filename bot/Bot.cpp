@@ -7,15 +7,14 @@
 #include "Bot.hpp"
 
 
-Bot::Bot(int sockfd, std::string host, std::string port, std::string pass) : fd(sockfd), _ip(host), _port(port), _password(pass), _isFirst(true) {}
+Bot::Bot(std::string host, std::string port, std::string pass) : _fd(-1), _ip(host), _port(port), _password(pass), _isFirst(true) {}
 
 Bot::~Bot(){}
 
 
-void Bot::startBot() {
+void Bot::exec() {
 	int sizeReaded;
 	char buffer[1024];
-	int errcode;
 	char s[INET6_ADDRSTRLEN];
 	struct addrinfo hints, *res;
 	
@@ -23,18 +22,18 @@ void Bot::startBot() {
 	hints.ai_family = AF_UNSPEC;
 	hints.ai_socktype = SOCK_STREAM;
 
-	if ((errcode = getaddrinfo(_ip.c_str(), _port.c_str(), &hints, &res)) != 0) {
+	if ((getaddrinfo(_ip.c_str(), _port.c_str(), &hints, &res)) != 0) {
 		std::cout << "Adress error\n";
 		exit(1);
 	}
 	
-	if ((fd = socket(res->ai_family, res->ai_socktype, res->ai_protocol)) == -1) {
+	if ((_fd = socket(res->ai_family, res->ai_socktype, res->ai_protocol)) == -1) {
 		std::cout << "Socket error\n";
 		exit(1);
 	}
 
-	if (connect(fd, res->ai_addr, res->ai_addrlen) == -1) {
-		close(fd);
+	if (connect(_fd, res->ai_addr, res->ai_addrlen) == -1) {
+		close(_fd);
 		std::cout << "Connect error\n";
 		exit(1);
 	}
@@ -42,9 +41,9 @@ void Bot::startBot() {
 	freeaddrinfo(res);
 	sendMessage("PASS " + _password + "\n" + "NICK MagicBot\nUSER 1 1 1 1\nJOIN #bot\n");
 	while(1) {
-		if ((sizeReaded = recv(fd, buffer, 512 - 1, 0)) == 0) {
+		if ((sizeReaded = recv(_fd, buffer, 512 - 1, 0)) == 0) {
 			std::cout << "Disconnected\n";
-			close(fd);
+			close(_fd);
 			exit(1);
 		} else {
 			buffer[sizeReaded] = '\0';
@@ -104,8 +103,8 @@ std::string Bot::returnAnswer(){
 }
 
 void Bot::sendMessage(std::string msg) {
-	std::cout << "To fd " << fd << ": \"" << msg;
-	send(fd, msg.c_str(), msg.length(), SO_NOSIGPIPE);
+	std::cout << "To fd " << _fd << ": \"" << msg;
+	send(_fd, msg.c_str(), msg.length(), SO_NOSIGPIPE);
 }
 
 std:: vector<std::string> Bot::split(const std::string& line, const std::string& delimiter) {

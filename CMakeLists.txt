@@ -12,10 +12,14 @@ add_executable(ft_irc
         Channel.cpp
         Client.cpp
         modeCommand.cpp
-        serverCommands.cpp joinCommand.cpp privmsgCommand.cpp)
+        serverCommands.cpp 
+        joinCommand.cpp 
+        privmsgCommand.cpp
+        )
 
 
 add_executable(bot
         bot/mainBot.cpp
         bot/Bot.cpp
-        bot/Bot.cpp)
+        bot/Bot.cpp
+        )

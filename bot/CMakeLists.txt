@@ -6,4 +6,4 @@ set(CMAKE_CXX_STANDARD 98)
 add_executable(bot
         Bot.cpp
         Bot.hpp
-        mainBot.cpp)
+        startBot.cpp)
