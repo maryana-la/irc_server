@@ -19,7 +19,6 @@ add_executable(ft_irc
 
 
 add_executable(bot
-        bot/mainBot.cpp
-        bot/Bot.cpp
+        bot/StartBot.cpp
         bot/Bot.cpp
         )

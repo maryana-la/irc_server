@@ -126,9 +126,6 @@ void Server::acceptProcess() {
 //					std::cout << "fd: " << nowPollfd.fd << std::endl;
 					Client *curUser = findClientbyFd(nowPollfd.fd);
 					std::string receivedMsg = recvMessage(curUser->getSockFd());
-					while (receivedMsg.find("\n") == std::string::npos) {
-						receivedMsg.append(recvMessage(curUser->getSockFd()));
-					}
 					this->parser(curUser, receivedMsg);
 				} catch (std::runtime_error &e) {
 					std::cout << e.what() << std::endl;
@@ -139,7 +136,7 @@ void Server::acceptProcess() {
 			Client *user = findClientbyFd(nowPollfd.fd);
 			if (user == NULL)
 				continue;
-			forceQuit(*user, static_cast<std::string>("Connection lost"));
+			forceQuit(*user);
 		}
 	}
 }
@@ -161,19 +158,16 @@ void Server::removeClient(Client *user) {
  */
 std::string Server::recvMessage(int fd) {
 	char message[512];
-	std::string res;
 	ssize_t recvByte;
 	memset(message, '\0', sizeof(message));
-	while ((recvByte = recv(fd, message, sizeof(message), 0)) > 0) {
-		message[recvByte] = 0;
-		res += message;
-	}
+	recvByte = recv(fd, message, sizeof(message), 0);
 	if (recvByte <= 0) {
 		throw std::runtime_error("fd " + std::to_string(fd) + " disconnected");
 	}
-	std::cout << "from fd " << fd << ": " << res;
-	return (res);
+	std::cout << "from fd " << fd << ": " << message;
+	return (message);
 }
+
 //
 //string Socket::tryToRecv( void ) {
 //	const int _SOCK_BUFFER_SIZE = 1024;

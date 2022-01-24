@@ -204,7 +204,7 @@ public:
 	void removeClient(Client *client);
 	void removeOperator(Client *client);
 	void leaveChannel(Client &client, Channel *channel);
-	void forceQuit(Client &client, std::string args);
+	void forceQuit(Client &client);
 
 	void standartReply(Client &client, Channel *channel, const std::string &command, const std::string &param);
 	std::string prefixCompose(Client &client);
