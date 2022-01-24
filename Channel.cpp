@@ -121,13 +121,13 @@ void Channel::setKeyFlag(bool status) { _keyFlag = status; }
 
 void Channel::setMaxUsersFlag(bool status) { _maxUsersFlag = status; }
 
-void Channel::sendMsgToChan(const std::string &message, Client *client)
+void Channel::sendMsgToChan(const std::string &message, Client *client, bool includingClient)
 {
 
 	std::vector<Client*>::iterator it= _users.begin();
 	std::vector<Client*>::iterator ite= _users.end();
-	for(; it !=ite; it++){
-		if((*it)->getNick() != client->getNick())
+	for(; it !=ite; it++) {
+		if((*it)->getNick() != client->getNick() || includingClient)
 			sendMessage(message, (*it)->getSockFd());
 	}
 }

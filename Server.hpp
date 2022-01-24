@@ -130,7 +130,7 @@ public:
 	bool isOperator(Client *client);
 	bool isChannelUser (Client *client);
 
-	void sendMsgToChan(const std::string &message, Client *client);
+	void sendMsgToChan(const std::string &message, Client *client, bool includingClient);
 	void receiveMsgOfAllChannelUsers(Client &client, Channel *channel);
 
 };
@@ -176,11 +176,11 @@ public:
 	void userExec(Client &client, std::vector<std::string> &args);
 	void nickExec(Client &client, std::vector<std::string> &args);
 
-	void joinExec(Client &client, std::vector<std::string> &args);
-	void listExec(Client &client, std::vector<std::string> &args);
-	void topicExec(Client &client, std::vector<std::string> &args);
+	void joinExec(Client &client, std::vector<std::string> &args); //OK
+	void listExec(Client &client, std::vector<std::string> &args); //OK
+	void topicExec(Client &client, std::vector<std::string> &args); //OK
 
-	void privmsgExec(Client &client, std::vector<std::string> &args);
+	void privmsgExec(Client &client, std::vector<std::string> &args); //OK
 	void modeExec(Client &client, std::vector<std::string> &args);
 	void pingExec(Client &client, std::vector<std::string> &args);
 	void pongExec(Client &client, std::vector<std::string> &args);
@@ -210,8 +210,8 @@ public:
 	void removeOperator(Client *client);
 	void leaveChannel(Client &client, Channel *channel);
 
-	void standartReply(Client &client, Channel *channel, std::string command);
-
+	void standartReply(Client &client, Channel *channel, const std::string &command, const std::string &param);
+	std::string prefixCompose(Client &client, Channel *channel);
 
 
 };

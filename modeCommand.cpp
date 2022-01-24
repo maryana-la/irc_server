@@ -6,14 +6,13 @@ void Server::modeExec(Client &client, std::vector<std::string> &args) {
 	if (args.size() < 3)
 		throw static_cast<std::string>(ERR_NEEDMOREPARAMS(client.getNick(), args[0]));
 	/* check number if +- in flag argument */
-//	size_t tmp = args[2].find_first_of("+-");
 	if (args[2][0] != '+' && args[2][0] != '-')
 		throw static_cast<std::string>(ERR_UNKNOWNMODE(client.getNick(), args[2]));
 
 
 	/* if channel */
 	if (args[1].find_first_of("&#+!") == 0) {
-		if (args[2].find_first_not_of("+-oitlk") != std::string::npos)
+		if (args[2].find_first_not_of("+-otlk") != std::string::npos)
 			throw static_cast<std::string>(ERR_UNKNOWNMODE(client.getNick(), args[2]));
 		setChannelModes(client, args);
 	}
@@ -53,13 +52,12 @@ void Server::setChannelModes(Client &client, std::vector<std::string> &args) {
 					ChanToUpd->addOperator(*ClientToUpd);
 				else
 					ChanToUpd->deleteOperator(*ClientToUpd);
+				standartReply(client, ChanToUpd, "MODE " + ChanToUpd->getChannelName(), (isPlus ? "+" : "-") + (std::string)"o " + ClientToUpd->getNick());
 				break;
 			case 't': /* topic can be set only by operator */
 				ChanToUpd->setTopicOperOnly(isPlus);
+				standartReply(client, ChanToUpd, "MODE " + ChanToUpd->getChannelName(), + (isPlus ? "+" : "-") + (std::string)"t");
 				break;
-//			case 'i':
-//				ChanToUpd->setInviteOnlyFlag(isPlus);
-//				break;
 			case 'l': /* set limit of users in th channel */
 				if (isPlus) {
 					if (args.size() != 4)
@@ -69,6 +67,7 @@ void Server::setChannelModes(Client &client, std::vector<std::string> &args) {
 				}
 				else
 					ChanToUpd->setMaxUsersFlag(false);
+				standartReply(client, ChanToUpd, "MODE " + ChanToUpd->getChannelName(), + (isPlus ? "+" : "-") + (std::string)"l " + intToString(ChanToUpd->getMaxUsers()));
 				break;
 			case 'k': /* set key to enter channel */
 				if (isPlus) {
@@ -79,21 +78,20 @@ void Server::setChannelModes(Client &client, std::vector<std::string> &args) {
 				}
 				else
 					ChanToUpd->setKeyFlag(isPlus);
+				standartReply(client, ChanToUpd, "MODE " + ChanToUpd->getChannelName(), + (isPlus ? "+" : "-") + (std::string)"k " + ChanToUpd->getKey());
 				break;
 		}
 	}
-	/* make string for RPL */
-	std::string modes = "[+n";
-	if (ChanToUpd->getTopicOperatorsOnly())
-		modes += "t";
-//	if (ChanToUpd->getInviteOnlyFlag())
-//		modes += "i";
-	if (ChanToUpd->getKeyStatus())
-		modes += "k";
-	if (ChanToUpd->getMaxUsersFlag())
-		modes += "l(" + intToString(ChanToUpd->getMaxUsers()) + ")";
-	modes += "]";
-	sendMessage(RPL_CHANNELMODEIS(client.getNick(), ChanToUpd->getChannelName(), modes), client.getSockFd());
+	/* make string for RPL */ ///should be by standard, but not working for lime chat
+//	std::string modes = "[+n";
+//	if (ChanToUpd->getTopicOperatorsOnly())
+//		modes += "t";
+//	if (ChanToUpd->getKeyStatus())
+//		modes += "k";
+//	if (ChanToUpd->getMaxUsersFlag())
+//		modes += "l(" + intToString(ChanToUpd->getMaxUsers()) + ")";
+//	modes += "]";
+//	sendMessage(RPL_CHANNELMODEIS(client.getNick(), ChanToUpd->getChannelName(), modes), client.getSockFd());
 }
 
 void Server::setUserModes(Client &client, std::vector<std::string> &args) {
@@ -108,6 +106,8 @@ void Server::setUserModes(Client &client, std::vector<std::string> &args) {
 					throw static_cast<std::string>(ERR_USERSDONTMATCH(client.getNick()));
 				if (args[2][0] == '-')
 					removeOperator(ClientToUpd);
+				sendMessage((":" + client.getNick() + "!" + client.getUsername() + "@" + getHost() + " MODE " + client.getNick() + " -o\n"), client.getSockFd());
+//				:rch!rch@10.21.34.86 MODE rch -o
 				break;
 			case 'i':
 				if (args[2][0] == '-')

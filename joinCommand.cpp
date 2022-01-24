@@ -19,7 +19,6 @@ void Server::joinExec(Client &client, std::vector<std::string> &args) {
 	std::vector<std::string>::iterator chIt = channels.begin();
 	std::vector<std::string>::iterator chIte = channels.end();
 
-	//todo send announcment to everybody in channel about new user
 	for (int i = 0; chIt != chIte; chIt++, i++) {
 		if (!checkValidChannelName(channels[i]))
 			throw static_cast<std::string>(ERR_NOSUCHCHANNEL(client.getNick(), channels[i]));
@@ -36,8 +35,7 @@ void Server::joinExec(Client &client, std::vector<std::string> &args) {
 							throw static_cast<std::string>(ERR_BADCHANNELKEY(client.getNick(), channels[i]));
 					}
 					(*it)->addUser(client);
-					standartReply(client, (*it), "JOIN");
-					sleep(1);
+					standartReply(client, (*it), "JOIN", (*it)->getChannelName());
 					sendTopic(client, channels[i]);
 					sendUsers(client, *(*it));
 					break;
@@ -57,8 +55,7 @@ void Server::joinExec(Client &client, std::vector<std::string> &args) {
 				else
 					tmp = new Channel(channels[i], client, getHost());
 				_channels.push_back(tmp);
-				standartReply(client, tmp, "JOIN");
-				sleep(1);
+				standartReply(client, tmp, "JOIN", tmp->getChannelName());
 				sendTopic(client, channels[i]);
 				sendUsers(client, *tmp);
 			}

@@ -5,7 +5,7 @@ void Server::parser(Client *client, std::string msg) {
 
 	std::vector<std::string> common;
 	//	msg.erase(std::remove(msg.begin(), msg.end(), ':'), msg.end());
-	common = split(msg, "\n\r");
+	common = split(msg, "\r\n");
 
 	/* find command and execute */
 
@@ -61,20 +61,15 @@ void Server::parser(Client *client, std::string msg) {
 			//todo clear memory for args in the end
 			args.clear();
 		}
-		catch (const char *msg) {
-			std::cout << msg << " char\n";
-		}
 		catch (std::string &msg) {
 			sendMessage(msg, client->getSockFd());
-			std::cout << msg << " string\n"; //cout to server
 		}
 		catch (std::exception &e) {
 			sendMessage(e.what(), client->getSockFd());
 			std::cout << e.what() << "\n"; //cout to server
-			std::cout << msg << " std::exception\n"; //cout to server
 		}
 		catch (...) {
-			std::cout << " catch all\n";
+			std::cout << "Unknown mistake. Reload project\n";
 		}
 	}
 }
@@ -106,6 +101,13 @@ void Server::listExec(Client &client, std::vector<std::string> &args) {
 		}
 	}
 	sendMessage(RPL_LISTEND(client.getNick()), client.getSockFd());
+
+//	LIST
+//	:IRCat 321 qw Channel :Users  Name
+//	:IRCat 322 qw #ASAS 1 :[+n]
+//	:IRCat 322 qw #DFF 1 :[+n]
+//	:IRCat 322 qw #TEST 2 :[+n] ERER ER E R
+//	:IRCat 323 qw :End of /LIST
 }
 
 void Server::sendTopic(Client &client, const std::string& channelName) {
@@ -139,7 +141,10 @@ void Server::topicExec(Client &client, std::vector<std::string> &args) {
 		if (tmp->getTopicOperatorsOnly() && !tmp->isOperator(&client))
 			throw static_cast<std::string>(ERR_CHANOPRIVSNEEDED(client.getNick(), tmp->getChannelName()));
 
-		tmp->setTopic(args[2]); //todo add some reply
+		tmp->setTopic(args[2]);
+		standartReply(client, tmp, "TOPIC " + tmp->getChannelName(), tmp->getTopic());
+		//todo add some reply
+//		:rch!rch@10.21.34.86 TOPIC #test :sdfdg - to everybody
 	}
 }
 
@@ -167,6 +172,10 @@ void Server::partExec (Client &client, std::vector<std::string> &args) {
 			throw static_cast<std::string>(ERR_NOTONCHANNEL(client.getNick(), channel->getChannelName()));
 		leaveChannel(client, channel);
 	}
+
+	//	to fd5: :we!Q@10.21.34.86 PART #test
+//to fd4: :we!Q@10.21.34.86 PART #test
+//to fd4: :we!Q@10.21.34.86 MODE #test +o rch
 }
 
 void Server::kickExec (Client &client, std::vector<std::string> &args) {
