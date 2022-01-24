@@ -71,6 +71,7 @@ void Server::informOfNewOperator(Client &client) {
 }
 
 void Server::quitExec(Client &client, std::vector<std::string> &args) {
+	(void)args;
 	std::vector<Channel*>::iterator itCh = _channels.begin();
 	std::vector<Channel*>::iterator iteCh = _channels.end();
 	for (; itCh != iteCh; itCh++) {

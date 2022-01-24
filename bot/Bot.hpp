@@ -20,7 +20,7 @@ public:
 	~Bot();
 	void startBot();
 	void doRegister();
-	void commandProcess(std::string meesage);
+	void doIt(std::string message);
 	std::string returnAnswer();
 	void sendMessage(std::string msg) ;
 	std:: vector<std::string> split(const std::string& line, const std::string& delimiter);

@@ -1,7 +1,7 @@
 
 project(ft_irc)
 
-#set(CMAKE_CXX_FLAGS " -Wall -Wextra -Werror -std=c++98 -pedantic")
+set(CMAKE_CXX_FLAGS " -Wall -Wextra -Werror -std=c++98 -pedantic")
 set(CMAKE_CXX_STANDARD 98)
 add_executable(ft_irc 
         main.cpp

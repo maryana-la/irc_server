@@ -9,10 +9,10 @@ Channel::Channel(const std::string& channel_name, Client &user, const std::strin
 	_keyFlag = false;
 	_topicOperOnly = false;
 	_maxUsersFlag =false;
-};
+}
 
 Channel::Channel(const std::string& channel_name, const std::string& key, Client &user, const std::string &host) :
-		_name(channel_name), _key(key), _host(host) {
+		_name(channel_name), _host(host), _key(key) {
 	_topic = "";
 	_maxUsers = 30;
 	_users.push_back(&user);
@@ -23,8 +23,8 @@ Channel::Channel(const std::string& channel_name, const std::string& key, Client
 }
 
 std::string Channel::getChannelName() const { return _name; }
-std::string Channel::getTopic() const { return _topic; };
-std::string Channel::getKey() const { return _key; };
+std::string Channel::getTopic() const { return _topic; }
+std::string Channel::getKey() const { return _key; }
 int 		Channel::getNumUsers() const { return static_cast<int>(_users.size()); }
 long int	Channel::getMaxUsers() const { return _maxUsers; }
 bool 		Channel::getKeyStatus() const { return _keyFlag; }

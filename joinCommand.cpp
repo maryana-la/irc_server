@@ -19,7 +19,7 @@ void Server::joinExec(Client &client, std::vector<std::string> &args) {
 	std::vector<std::string>::iterator chIt = channels.begin();
 	std::vector<std::string>::iterator chIte = channels.end();
 
-	for (int i = 0; chIt != chIte; chIt++, i++) {
+	for (unsigned int i = 0; chIt != chIte; chIt++, i++) {
 		if (!checkValidChannelName(channels[i]))
 			throw static_cast<std::string>(ERR_NOSUCHCHANNEL(client.getNick(), channels[i]));
 		else {
@@ -44,7 +44,7 @@ void Server::joinExec(Client &client, std::vector<std::string> &args) {
 
 			/* if channel is not found */
 			if (it == ite) {
-				if (_channels.size() == _maxNumberOfChannels)
+				if (static_cast<int>(_channels.size()) == _maxNumberOfChannels)
 					throw static_cast<std::string>(ERR_TOOMANYCHANNELS(client.getNick(),channels[i]));
 
 				/* create new Channel and set attributes */
