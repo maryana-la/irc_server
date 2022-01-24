@@ -59,7 +59,7 @@ std::string	intToString(long int num) {
 int checkValidChannelName(const std::string &name) {
 	if (name.length() > 50 || name.find_first_of("&#+!") != 0)
 		return 0;
-	for (int i = 0; i < name.length(); i++) {
+	for (unsigned int i = 0; i < name.length(); i++) {
 		if (isspace(name[i]) || iscntrl(name[i]) || name[i] == ',')
 			return 0;
 	}

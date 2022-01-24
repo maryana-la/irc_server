@@ -1,7 +1,7 @@
 
 project(ft_irc)
 
-#set(CMAKE_CXX_FLAGS " -Wall -Wextra -Werror -std=c++98 -pedantic")
+set(CMAKE_CXX_FLAGS " -Wall -Wextra -Werror -std=c++98 -pedantic")
 set(CMAKE_CXX_STANDARD 98)
 add_executable(ft_irc 
         main.cpp
@@ -12,10 +12,14 @@ add_executable(ft_irc
         Channel.cpp
         Client.cpp
         modeCommand.cpp
-        serverCommands.cpp joinCommand.cpp privmsgCommand.cpp)
+        serverCommands.cpp 
+        joinCommand.cpp 
+        privmsgCommand.cpp
+        )
 
 
 add_executable(bot
         bot/mainBot.cpp
         bot/Bot.cpp
-        bot/Bot.cpp)
+        bot/Bot.cpp
+        )
