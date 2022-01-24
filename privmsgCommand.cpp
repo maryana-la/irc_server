@@ -22,7 +22,7 @@ void Server::privmsgExec(Client &client, std::vector<std::string> &args) {
 			if(!channelDest->isChannelUser(&client))
 				throw static_cast<std::string>(ERR_CANNOTSENDTOCHAN(client.getNick(), channelDest->getChannelName()));
 
-			channelDest->sendMsgToChan(prefixCompose(client, channelDest) + " PRIVMSG " + (*it) + " :" + args[2] + "\n", &client, false);
+			channelDest->sendMsgToChan(prefixCompose(client) + " PRIVMSG " + (*it) + " :" + args[2] + "\n", &client, false);
 		}
 		else {  //if user nick
 			Client *clientDest = findClient(*it);

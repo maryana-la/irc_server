@@ -93,7 +93,6 @@ void Server::leaveChannel(Client &client, Channel *channel) {
 		return;
 	channel->deleteUser(client);
 	channel->deleteOperator(client);
-	standartReply(client, channel, "PART", channel->getChannelName()); //todo без двоеточие перед названием канала
 	if(!channel->getNumUsers()){  //remove channel if no users
 		std::vector<Channel *>::iterator itCh = _channels.begin();
 		std::vector<Channel *>::iterator iteCh = _channels.end();
@@ -104,16 +103,16 @@ void Server::leaveChannel(Client &client, Channel *channel) {
 	}
 }
 
-std::string Server::prefixCompose(Client &client, Channel *channel) {
+std::string Server::prefixCompose(Client &client) {
 	std::string msg;
 	msg = ":" + client.getNick() + "!" + client.getUsername() + "@" + getHost() + " ";
 	return msg;
 }
 
 /* client - who made an action, channel - where action was made */
-void Server::standartReply(Client &client, Channel *channel, const std::string &command, const std::string &param) {//todo add : for join before param
+void Server::standartReply(Client &client, Channel *channel, const std::string &command, const std::string &param) {//todo add : for join before param for join?
 	std::string msg;
-	msg = prefixCompose(client, channel) + command + " " + param + "\n";
+	msg = prefixCompose(client) + command + " " + param + "\n";
 	channel->sendMsgToChan(msg, &client, true);
 }
 

@@ -38,6 +38,7 @@ void Server::joinExec(Client &client, std::vector<std::string> &args) {
 					standartReply(client, (*it), "JOIN", (*it)->getChannelName());
 					sendTopic(client, channels[i]);
 					sendUsers(client, *(*it));
+//					sendMessage(RPL_ENDOFNAMES(client.getNick(), (*it)->getChannelName()), client.getSockFd());
 					break;
 				}
 			}
@@ -58,6 +59,7 @@ void Server::joinExec(Client &client, std::vector<std::string> &args) {
 				standartReply(client, tmp, "JOIN", tmp->getChannelName());
 				sendTopic(client, channels[i]);
 				sendUsers(client, *tmp);
+//				sendMessage(RPL_ENDOFNAMES(client.getNick(), tmp->getChannelName()), client.getSockFd());
 			}
 		}
 	}

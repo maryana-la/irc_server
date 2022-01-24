@@ -30,7 +30,7 @@ void Server::passExec(Client &client, std::vector<std::string> &args) {
 	/* check is USER & NICK are already filled */
 	if (client.checkUserStatus() && !client.getNick().empty()) {
 		client.setRegisterStatus();
-//		sendMessage(RPL_WELCOME(client.getNick()), client.getSockFd());
+		sendMessage(RPL_WELCOME(client.getNick()), client.getSockFd());
 		sendmotd(client);
 	}
 }
@@ -62,7 +62,7 @@ void Server::nickExec(Client &client, std::vector<std::string> &args) {
 	/* check if USER & PASS commands are already done succesfully */
 	if (client.checkUserStatus() && client.getPassStatus()) {
 		client.setRegisterStatus();
-//		sendMessage(RPL_WELCOME(client.getNick()), client.getSockFd());
+		sendMessage(RPL_WELCOME(client.getNick()), client.getSockFd());
 		sendmotd(client);
 	}
 }
@@ -90,7 +90,7 @@ void Server::userExec(Client &client, std::vector<std::string> &args) {
 	/* check if NICK & PASS commands are already done succesfully */
 	if (!client.getNick().empty() && client.getPassStatus()) {
 		client.setRegisterStatus();
-//		sendMessage(RPL_WELCOME(client.getNick()), client.getSockFd());
+		sendMessage(RPL_WELCOME(client.getNick()), client.getSockFd());
 		sendmotd(client);
 	}
 }

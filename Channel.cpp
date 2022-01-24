@@ -51,8 +51,12 @@ void Channel::addOperator(Client &user) { _operators.insert(&user); }
 
 void Channel::deleteOperator(Client &user) { 
 	_operators.erase(&user);
-	if(_operators.empty() && !_users.empty())
+	if(_operators.empty() && !_users.empty()) {
 		addOperator(*_users[0]);
+		std::string msg = ":" + user.getNick() + "!" + user.getUsername() + "@" + _host + " MODE " + getChannelName() + " +o " + _users[0]->getNick() + "\n";
+		sendMsgToChan(msg, &user, true);
+	}
+//	:rch!rch@10.21.34.86 MODE #test +o qw
 		
 }
 
@@ -61,7 +65,7 @@ void Channel::deleteUser(Client &client) {
 	std::vector<Client *>::iterator ite = _users.end();
 	for (; it != ite; it++) {
 		if ((*it)->getNick() == client.getNick())
-			_users.erase(it);
+			_users.erase(it);//todo add break
 	}
 }
 
@@ -98,7 +102,7 @@ bool Channel::isChannelUser (Client *client) {
 	std::vector<Client *>::iterator ite = _users.end();
 
 	for (; it != ite; it++) {
-		if (*it == client)
+		if ((*it)->getNick() == client->getNick())
 			return true;
 	}
 	return false;

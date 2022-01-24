@@ -54,7 +54,7 @@ void Server::parser(Client *client, std::string msg) {
 			else if (args[0] == "KILL" || args[0] == "kill")
 				killExec(*client, args);
 			else if (args[0] == "EXIT" || args[0] == "exit")
-				exitExec();
+				exitExec(*client);
 
 
 
@@ -170,27 +170,25 @@ void Server::partExec (Client &client, std::vector<std::string> &args) {
 			throw static_cast<std::string>(ERR_NOSUCHCHANNEL(client.getNick(),(*it)));
 		if(!channel->isChannelUser(&client))
 			throw static_cast<std::string>(ERR_NOTONCHANNEL(client.getNick(), channel->getChannelName()));
+		standartReply(client, channel, "PART", channel->getChannelName());
 		leaveChannel(client, channel);
 	}
-
-	//	to fd5: :we!Q@10.21.34.86 PART #test
-//to fd4: :we!Q@10.21.34.86 PART #test
-//to fd4: :we!Q@10.21.34.86 MODE #test +o rch
 }
 
 void Server::kickExec (Client &client, std::vector<std::string> &args) {
 	if(args.size() < 3)
 		throw static_cast<std::string>(ERR_NEEDMOREPARAMS(client.getNick(), args[0]));
-
+	/* get channels */
 	std::vector<std::string> chans = split(args[1],",");
 	std::vector<std::string>::iterator itCh = chans.begin();
 	std::vector<std::string>::iterator iteCh = chans.end();
 
+	/* get users to kick */
 	std::vector<std::string> users = split(args[2],",");
-
 
 	for(; itCh !=iteCh; itCh++){
 		Channel *channel = findChannel(*itCh);
+		/* check if channel exists and requester can kick */
 		if(!channel)
 			throw static_cast<std::string>(ERR_NOSUCHCHANNEL(client.getNick(),(channel->getChannelName())));
 
@@ -202,28 +200,26 @@ void Server::kickExec (Client &client, std::vector<std::string> &args) {
 
 		std::vector<std::string>::iterator itUsers = users.begin();
 		std::vector<std::string>::iterator iteUsers = users.end();
+		/* find users to kick in the current channels */
 		for(; itUsers !=iteUsers; itUsers++){
 			Client *user = findClient(*itUsers);
 			if(!user)
 				throw  static_cast<std::string>(ERR_NOTONCHANNEL(client.getNick(), channel->getChannelName()));
-
 			if(!channel->isChannelUser(user))
 				throw static_cast<std::string>(ERR_NOTONCHANNEL(client.getNick(), channel->getChannelName()));
-			if(&client == user)
-				throw ("Cant kick myself, use PART\n");
+//			if(&client == user)
+//				throw ("Cant kick myself, use PART\n"); //todo!!! delete or kick yourself
 
-//todo replace with leaveChannel function
-			channel->deleteUser(*user);
-			channel->deleteOperator(*user);
-
-			if(!channel->getNumUsers()){ //remove channel if no users
-				std::vector<Channel *>::iterator itChLast = _channels.begin();
-				std::vector<Channel *>::iterator iteChLast = _channels.end();
-				for (; itChLast != iteChLast; itChLast++) {
-					if ((*itChLast)->getChannelName() == channel->getChannelName())
-						_channels.erase(itChLast);
-				}
-			}
+		/* announce to group and kick */
+			std::string reply;
+			if (args.size() > 3)
+				reply = channel->getChannelName() + " " + user->getNick() + " :" + args[3];
+			else
+				reply = channel->getChannelName() + " " + user->getNick();
+			standartReply(client, channel, "KICK", reply);
+			//			:qw!Q@10.21.34.86 KICK #test we :donttd ff ggh
+			leaveChannel(*user, channel);
 		}
 	}
 }
+

@@ -12,7 +12,7 @@ void Server::modeExec(Client &client, std::vector<std::string> &args) {
 
 	/* if channel */
 	if (args[1].find_first_of("&#+!") == 0) {
-		if (args[2].find_first_not_of("+-otlk") != std::string::npos)
+		if (args[2].find_first_not_of("+-otlksn") != std::string::npos)
 			throw static_cast<std::string>(ERR_UNKNOWNMODE(client.getNick(), args[2]));
 		setChannelModes(client, args);
 	}
@@ -106,7 +106,7 @@ void Server::setUserModes(Client &client, std::vector<std::string> &args) {
 					throw static_cast<std::string>(ERR_USERSDONTMATCH(client.getNick()));
 				if (args[2][0] == '-')
 					removeOperator(ClientToUpd);
-				sendMessage((":" + client.getNick() + "!" + client.getUsername() + "@" + getHost() + " MODE " + client.getNick() + " -o\n"), client.getSockFd());
+				sendMessage((prefixCompose(client) + "MODE " + client.getNick() + " -o\n"), client.getSockFd());
 //				:rch!rch@10.21.34.86 MODE rch -o
 				break;
 			case 'i':
@@ -114,6 +114,7 @@ void Server::setUserModes(Client &client, std::vector<std::string> &args) {
 					ClientToUpd->setInvisibleStatus(false);
 				else
 					ClientToUpd->setInvisibleStatus(true);
+				sendMessage((prefixCompose(client) + "MODE " + client.getNick() + " " + (args[2][0] == '+' ? "+" : "-") + "i\n"), client.getSockFd());
 				break;
 		}
 	}

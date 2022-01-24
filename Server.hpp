@@ -148,11 +148,6 @@ private:
 	std::map<std::string, std::string> _operator_login;
 	int _maxNumberOfChannels;
 
-//	typedef void(Server::*command)(std::vector<std::string> &args, Client &user);
-//
-//	std::vector<command> commands;
-//	std::vector<std::string> commandsName;
-
 public:
 	Server(const std::string &host, const std::string &port, const std::string &password);
 	virtual ~Server();
@@ -181,19 +176,19 @@ public:
 	void topicExec(Client &client, std::vector<std::string> &args); //OK
 
 	void privmsgExec(Client &client, std::vector<std::string> &args); //OK
-	void modeExec(Client &client, std::vector<std::string> &args);
+	void modeExec(Client &client, std::vector<std::string> &args);  //OK
 	void pingExec(Client &client, std::vector<std::string> &args);
 	void pongExec(Client &client, std::vector<std::string> &args);
-	void partExec (Client &client, std::vector<std::string> &args);
-	void kickExec (Client &client, std::vector<std::string> &args);
+	void partExec (Client &client, std::vector<std::string> &args);  //OK
+	void kickExec (Client &client, std::vector<std::string> &args);  //OK
 	
-	void namesExec(Client &client, std::vector<std::string> &args);
+	void namesExec(Client &client, std::vector<std::string> &args);  //OK
 
-	void operExec(Client &client, std::vector<std::string> &args);
-	void quitExec(Client &client, std::vector<std::string> &args);
-	void killExec(Client &client, std::vector<std::string> &args);
+	void operExec(Client &client, std::vector<std::string> &args);  //OK
+	void quitExec(Client &client, std::vector<std::string> &args);  //OK
+	void killExec(Client &client, std::vector<std::string> &args);  //OK
 
-	void exitExec() { exit(10);}
+	void exitExec(Client &client);
 
 	/*
 	 * Server Utils
@@ -205,15 +200,14 @@ public:
 	void sendUsers(Client &client,Channel &channel);
 	void setChannelModes(Client &client, std::vector<std::string> &args);
 	void setUserModes(Client &client, std::vector<std::string> &args);
-	void informOfNewOperator(Client &client);
+//	void informOfNewOperator(Client &client);
 	void removeClient(Client *client);
 	void removeOperator(Client *client);
 	void leaveChannel(Client &client, Channel *channel);
+	void forceQuit(Client &client, std::string args);
 
 	void standartReply(Client &client, Channel *channel, const std::string &command, const std::string &param);
-	std::string prefixCompose(Client &client, Channel *channel);
-
-
+	std::string prefixCompose(Client &client);
 };
 
 void sendMessage(const std::string &msg, int socket_fd);
