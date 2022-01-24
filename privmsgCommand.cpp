@@ -26,12 +26,12 @@ void Server::privmsgExec(Client &client, std::vector<std::string> &args) {
 			if(!channelDest->isChannelUser(&client))//todo протестировать проверку что пользователь состоит в канале
 				throw static_cast<std::string>(ERR_CANNOTSENDTOCHAN(client.getNick(), channelDest->getChannelName()));
 
-			channelDest->sendMsgToChan(":" + client.getNick() + "!" + client.getUsername() + "@" + getHost() + " PRIVMSG " + (*it) + " :" + message + "\r\n", &client);
+			channelDest->sendMsgToChan(":" + client.getNick() + "!" + client.getUsername() + "@" + getHost() + " PRIVMSG " + (*it) + " :" + message + "\n", &client);
 		}
 		else{
 			Client *clientDest = findClient(*it);
 			if (clientDest){
-				sendMessage((":" + client.getNick() + "!" + client.getUsername() + "@" + getHost() + " PRIVMSG " + (*it) + " :" + message + "\r\n"), clientDest->getSockFd());
+				sendMessage((":" + client.getNick() + "!" + client.getUsername() + "@" + getHost() + " PRIVMSG " + (*it) + " :" + message + "\n"), clientDest->getSockFd());
 				return;
 			}
 			else

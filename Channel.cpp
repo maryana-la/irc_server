@@ -139,7 +139,7 @@ void Channel::receiveMsgOfAllChannelUsers(Client &client, Channel *channel) {
 	for (; it != ite; it++) {
 		std::string msg;
 		msg = ":" + (*it)->getNick() + "!" + (*it)->getUsername() + "@" + _host + " " + "JOIN" + " :" +
-			  channel->getChannelName() + "\n\r";
+			  channel->getChannelName() + "\n";
 		sendMessage(msg, client.getSockFd());
 	}
 }

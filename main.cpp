@@ -37,6 +37,6 @@ int main(int argc, char **argv) {
 		}
 	}
 	catch (...) {
-		std::cout << "catch all in main\n";
+		std::cout << "catch all in main, check port accessibility\n";
 	}
 }

@@ -36,7 +36,7 @@ void Client::setInvisibleStatus(bool status) 			{ _isInvisible = status; }
 //
 //void Client::appendMessage(std::string message) {
 //	_message.append(message);
-//	_message.erase(_message.find_last_not_of("\r\n") + 1);
+//	_message.erase(_message.find_last_not_of("\n") + 1);
 //	_message.append("\n");
 //}
 

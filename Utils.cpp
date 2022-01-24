@@ -107,7 +107,7 @@ void Server::leaveChannel(Client &client, Channel *channel) {
 /* client - who made an action, channel - where action was made */
 void Server::standartReply(Client &client, Channel *channel, std::string command) {
 	std::string msg;
-	msg = ":" + client.getNick() + "!" + client.getUsername() + "@" + getHost() + " " + command + " :" + channel->getChannelName() + "\n\r";
+	msg = ":" + client.getNick() + "!" + client.getUsername() + "@" + getHost() + " " + command + " :" + channel->getChannelName() + "\n";
 	channel->sendMsgToChan(msg, &client);
 	sendMessage(msg, client.getSockFd());
 

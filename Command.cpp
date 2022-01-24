@@ -144,11 +144,11 @@ void Server::topicExec(Client &client, std::vector<std::string> &args) {
 }
 
 void Server::pingExec(Client &client, std::vector<std::string> &args){
-	sendMessage(":IRC PONG " + args[1] + "\r\n", client.getSockFd() );
+	sendMessage(":IRC PONG " + args[1] + "\n", client.getSockFd() );
 }
 
 void Server::pongExec(Client &client, std::vector<std::string> &args){
-	sendMessage(":IRC PING " + args[1] + "\r\n", client.getSockFd() );
+	sendMessage(":IRC PING " + args[1] + "\n", client.getSockFd() );
 }
 
 void Server::partExec (Client &client, std::vector<std::string> &args) {
