@@ -24,14 +24,14 @@ int main(int argc, char **argv) {
 				error();
 
 			//todo add try/catch for server init/start
-			Server server(arr[0], arr[1], arr[2]);
+			Server server(&arr[0], arr[1], arr[2]);
 			server.init();
 			server.start();
 		} else {
 			int port = static_cast<int>(strtol(argv[1], NULL, 10));
 			if (port < 1 || port > 65535)
 				error();
-			Server server("127.0.0.1", argv[1], argv[2]);
+			Server server(NULL, argv[1], argv[2]);
 			server.init();
 			server.start();
 		}

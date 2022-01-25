@@ -46,9 +46,10 @@ private:
     bool    _passValid;
     bool    _registered;
 	bool	_isInvisible;
+	bool 	_readIsComplete;
 
 public:
-	Client(int socketFd) : _sockFd(socketFd), _nickname(""), _passValid(false), _registered(false), _isInvisible(false) {}
+	Client(int socketFd);
 	~Client();
 
     int			getSockFd() const;
@@ -61,6 +62,7 @@ public:
     bool 		getRegisterStatus() const;
 	bool 		getPassStatus() const;
 	bool 		getInvisibleStatus() const;
+	bool 		getReadCompleteStatus() const;
     bool 		checkUserStatus() const;
 
     void setNick(const std::string &name);
@@ -68,10 +70,12 @@ public:
 	void setHostName (const std::string &name);
 	void setServerName (const std::string &name);
 	void setRealName (const std::string &name);
+
 	void setPassStatus();
 	void setRegisterStatus();
 	void setInvisibleStatus(bool status);
-
+	void messageAppend (std::string &msg);
+	void clearMessage ();
 };
 
 class Channel {
@@ -138,7 +142,7 @@ public:
 class Server{
 private:
 	int _socketFd;
-	const std::string _host;
+	const std::string *_host;
 	const std::string &_port;
 	const std::string &_password;
 	std::vector<pollfd> _fds;
@@ -149,7 +153,7 @@ private:
 	int _maxNumberOfChannels;
 
 public:
-	Server(const std::string &host, const std::string &port, const std::string &password);
+	Server(const std::string *host, const std::string &port, const std::string &password);
 	virtual ~Server();
 
 	void start();
@@ -161,7 +165,7 @@ public:
     void parser(Client *client, std::string msg);
 	bool isServerOperator(Client *client);
 
-	std::string getHost() { return _host; }
+	std::string getHost() const { return *_host; }
 
 
     /*

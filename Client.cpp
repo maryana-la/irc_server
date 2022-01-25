@@ -1,12 +1,6 @@
 #include "Server.hpp"
 
-//Client::Client(int sockFd, int port, Server *serv, char *host) : _sockFd(sockFd), _port(port), _host(host){
-//	_nickname = "";
-//	_realname = "";
-//	_awayMessage = "";
-//	_passValid = false;
-//	_id = serv->getId(0) + serv->getId(1) + serv->getId(2);
-//}
+Client::Client(int socketFd) : _sockFd(socketFd), _nickname(""), _passValid(false), _registered(false), _isInvisible(false) {}
 
 Client::~Client() {}
 
@@ -20,6 +14,7 @@ std::string Client::getMessage() const { return _message; }
 bool Client::getRegisterStatus() const { return _registered; }
 bool Client::getPassStatus() const { return _passValid; }
 bool Client::getInvisibleStatus() const { return _isInvisible; }
+bool Client::getReadCompleteStatus() const { return _readIsComplete; }
 bool Client::checkUserStatus() const { return((_username[0] && _host[0] && _servername[0] && _realname[0])); }
 
 void Client::setNick(const std::string &name) 			{ _nickname = name; }
@@ -31,14 +26,20 @@ void Client::setPassStatus()							{ _passValid = true; }
 void Client::setRegisterStatus()						{ _registered = true; }
 void Client::setInvisibleStatus(bool status) 			{ _isInvisible = status; }
 
-//void Client::clearMessage() { _message.clear(); }
-//
-//
-//void Client::appendMessage(std::string message) {
-//	_message.append(message);
-//	_message.erase(_message.find_last_not_of("\n") + 1);
-//	_message.append("\n");
-//}
+void Client::messageAppend (std::string &msg) {
+	if (_message.empty())
+		_message = msg;
+	else
+		_message.append(msg);
+	if (_message.find_last_of("\n") == _message.size() - 1)
+		_readIsComplete = true;
+	else
+		_readIsComplete = false;
+}
+
+void Client::clearMessage () {
+	_message.clear();
+	_readIsComplete = false; }
 
 bool operator== (const Client &lhs, const Client &rhs) {
 	return (lhs.getNick() == rhs.getNick());

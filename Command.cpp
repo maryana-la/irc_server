@@ -59,7 +59,8 @@ void Server::parser(Client *client, std::string msg) {
 
 
 			//todo clear memory for args in the end
-			args.clear();
+//			args.clear();
+//			client->clearMessage();
 		}
 		catch (std::string &msg) {
 			sendMessage(msg, client->getSockFd());
@@ -71,6 +72,8 @@ void Server::parser(Client *client, std::string msg) {
 		catch (...) {
 			std::cout << "Unknown mistake. Reload project\n";
 		}
+//		args.clear();
+		client->clearMessage();
 	}
 }
 

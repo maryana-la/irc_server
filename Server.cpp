@@ -11,7 +11,7 @@
 //#include "Client.hpp"
 
 
-Server::Server(const std::string &host, const std::string &port, const std::string &password)
+Server::Server(const std::string *host, const std::string &port, const std::string &password)
 		: _socketFd(-1), _host(host), _port(port), _password(password), _maxNumberOfChannels(30) {
 	_operator_login.insert(std::make_pair("jjacquel", "ircserv"));
 	_operator_login.insert(std::make_pair("rchelsea", "ircserv"));
@@ -31,7 +31,7 @@ void Server::init() {
 	hints.ai_flags = AI_PASSIVE;     // заполните мой IP-адрес за меня
 //	getaddrinfo("10.21.34.84", _port.c_str(), &hints, &servinfo) != 0)
 
-	if (getaddrinfo(_host != "127.0.0.1" ? this->_host.c_str() : "127.0.0.1", this->_port.c_str(), &hints, &serverInfo) != 0) {
+	if (getaddrinfo(_host ? this->_host->c_str() : NULL, this->_port.c_str(), &hints, &serverInfo) != 0) {
 		throw std::runtime_error("getaddrinfo error");
 	}
 	for (rp = serverInfo; rp != nullptr; rp = rp->ai_next) {
@@ -126,10 +126,11 @@ void Server::acceptProcess() {
 //					std::cout << "fd: " << nowPollfd.fd << std::endl;
 					Client *curUser = findClientbyFd(nowPollfd.fd);
 					std::string receivedMsg = recvMessage(curUser->getSockFd());
-					while (receivedMsg.find("\n") == std::string::npos) {
-						receivedMsg.append(recvMessage(curUser->getSockFd()));
+					curUser->messageAppend(receivedMsg);
+					if (curUser->getReadCompleteStatus()) {
+						std::cout << "from fd " << curUser->getNick() << " to parser: " << curUser->getMessage();
+						parser(curUser, curUser->getMessage());
 					}
-					this->parser(curUser, receivedMsg);
 				} catch (std::runtime_error &e) {
 					std::cout << e.what() << std::endl;
 				}
@@ -162,14 +163,22 @@ void Server::removeClient(Client *user) {
 std::string Server::recvMessage(int fd) {
 	char message[512];
 	std::string res;
-	ssize_t recvByte;
+	int recvByte = 0;
+	int readed;
 	memset(message, '\0', sizeof(message));
-	while ((recvByte = recv(fd, message, sizeof(message), 0)) > 0) {
-		message[recvByte] = 0;
+	while ((readed = recv(fd, message, sizeof(message), 0)) > 0) {
+		message[readed] = 0;
+		recvByte += readed;
 		res += message;
+		if (res.find("\n") != std::string::npos)
+			break;
 	}
+
+	while (res.find("\r") != std::string::npos)      // Удаляем символ возврата карретки
+		res.erase(res.find("\r"), 1);
+
 	if (recvByte <= 0) {
-		throw std::runtime_error("fd " + std::to_string(fd) + " disconnected");
+		throw std::runtime_error("fd " + std::to_string(fd) + " disconnected");//todo kill user
 	}
 	std::cout << "from fd " << fd << ": " << res;
 	return (res);
