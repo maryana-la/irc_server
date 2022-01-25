@@ -20,7 +20,13 @@
 # include <cstdlib>
 # include <algorithm>
 
-# define IRC_NOSIGNAL SO_NOSIGPIPE //from levensta
+#include <cstring>
+#include <errno.h>
+#include <netinet/in.h> 
+
+
+
+# define IRC_NOSIGNAL SO_NOSIGPIPE
 
 # include "Error_Reply.hpp"
 
@@ -152,7 +158,7 @@ public:
 	Server(const std::string &host, const std::string &port, const std::string &password);
 	virtual ~Server();
 
-	void start();
+	void begin();
 	void init();
 	void exec();
 	std::string recvMessage(int fd);
@@ -215,6 +221,8 @@ int checkValidChannelName(const std::string &name);
 std:: vector<std::string> split(const std::string& line, const std::string& delimiter);
 std:: vector<std::string> split_args(const std::string& line);
 std::string	intToString(long int num);
+std::string getIP();
+void errorMain();
 
 void sendmotd(Client &client);
 

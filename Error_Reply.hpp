@@ -23,7 +23,7 @@
 #define ERR_UNKNOWNCOMMAND(command)					":IRC 421 * " + command + " :Unknown command\n"
 #define ERR_NOMOTD									":IRC 422 * :MOTD File is missing\n"
 #define ERR_NOADMININFO(server)						":IRC 423 * " + server + " :No administrative info available\n"
-#define ERR_FILEERROR(fileop, file)					":IRC 424 * :File error doing " + fileop + " on " + file + "\n"
+#define ERR_FILEERROR(fileop, file)					":IRC 424 * :File errorMain doing " + fileop + " on " + file + "\n"
 #define ERR_NONICKNAMEGIVEN							":IRC 431 :No nickname given\n"
 #define ERR_ERRONEUSNICKNAME(nick)					":IRC 432 " + nick + " :Erroneus nickname\n"
 #define ERR_NICKNAMEINUSE(nick)						":IRC 433 " + nick + " :Nickname is already in use\n"

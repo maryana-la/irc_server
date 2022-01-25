@@ -7,8 +7,7 @@
 #include <cstring>
 #include <array>
 #include <arpa/inet.h>
-#include "Server.hpp"
-//#include "Client.hpp"
+
 
 
 Server::Server(const std::string &host, const std::string &port, const std::string &password)
@@ -17,49 +16,39 @@ Server::Server(const std::string &host, const std::string &port, const std::stri
 	_operator_login.insert(std::make_pair("rchelsea", "ircserv"));
 }
 
-/**
- * создание структуры addrinfo, создание сокета и bind
- */
-void Server::init()
-{
-
-}
-
-void Server::start() {
+void Server::begin() {
 	int ptr = 1;
 	struct addrinfo hints, *res;
 	memset(&hints, 0, sizeof hints);
 	hints.ai_family = AF_UNSPEC;
 	hints.ai_socktype = SOCK_STREAM;
 	if ((getaddrinfo(_host.c_str(), _port.c_str(), &hints, &res)) != 0)
-		throw std::runtime_error("Port/address error");
+		throw std::runtime_error("Port/address errorMain");
 	if ((_socketFd = socket(res->ai_family, res->ai_socktype, res->ai_protocol)) == -1)
-		throw std::runtime_error("Connection error");
+		throw std::runtime_error("Connection errorMain");
 	if (setsockopt(_socketFd, SOL_SOCKET, SO_REUSEADDR, &ptr, sizeof(int)) == -1)
-		throw std::runtime_error("Connection error");
+		throw std::runtime_error("Connection errorMain");
 	if (bind(_socketFd, res->ai_addr, res->ai_addrlen) != 0){
 		close(_socketFd);
-		throw std::runtime_error("Connection error");
+		throw std::runtime_error("Connection errorMain");
 	}
 	freeaddrinfo(res);
 	if (listen(_socketFd, 32) == -1)
-		throw std::runtime_error("listen error");
+		throw std::runtime_error("listen errorMain");
 	pollfd pfd = {_socketFd, POLLIN, 0};
 	if (fcntl(_socketFd, F_SETFL, O_NONBLOCK) == -1)
-		throw std::runtime_error("fcntl error");
+		throw std::runtime_error("fcntl errorMain");
 	_fds.push_back(pfd);
 	std::vector<pollfd>::iterator it;
 	while (true) {
 		it = _fds.begin();
 		if (poll(&(*it), _fds.size(), -1) == -1) 
-			throw std::runtime_error("poll error");
+			throw std::runtime_error("poll errorMain");
 		exec();
 	}
 }
 
 Server::~Server() {
-//	std::vector<Channel *>::iterator it = _channels.begin();
-//	std::vector<Channel *>::iterator ite = _channels.end();
 	_channels.clear();
 }
 
@@ -76,11 +65,10 @@ Client *Server::findClientbyFd(int fd) {
 
 void Server::exec() {
 	pollfd nowPollfd;
-
 	for (unsigned int i = 0; i < _fds.size(); i++) {
 		nowPollfd = _fds[i];
-		if ((nowPollfd.revents & POLLIN) == POLLIN) { ///можно считать данные
-			if (nowPollfd.fd == _socketFd) { ///accept
+		if ((nowPollfd.revents & POLLIN) == POLLIN) { 
+			if (nowPollfd.fd == _socketFd) { 
 				int clientSocket;
 				sockaddr_in clientAddr;
 				memset(&clientAddr, 0, sizeof(clientAddr));
@@ -92,12 +80,12 @@ void Server::exec() {
 				pollfd clientPollfd = {clientSocket, POLLIN, 0};
 				_fds.push_back(clientPollfd);
 				if (fcntl(clientSocket, F_SETFL, O_NONBLOCK) == -1) {
-					throw std::runtime_error("fcntl error");
+					throw std::runtime_error("fcntl errorMain");
 				}
 				std::cout << "new fd:" << clientSocket << std::endl;
 				Client *user = new Client(clientSocket);
 				_users.push_back(user);
-			} else { ///нужно принять данные не с основного сокета, который мы слушаем(клиентского?)
+			} else { 
 				try {
 					Client *curUser = findClientbyFd(nowPollfd.fd);
 					std::string receivedMsg = recvMessage(curUser->getSockFd());
@@ -127,10 +115,6 @@ void Server::removeClient(Client *user) {
 	}
 }
 
-/**
- * функция для получения сообщения
- * @param fd фдшник, с которого мы получаем сообщение
- */
 std::string Server::recvMessage(int fd) {
 	char message[512];
 	ssize_t recvByte;
@@ -143,18 +127,3 @@ std::string Server::recvMessage(int fd) {
 	return (message);
 }
 
-//
-//string Socket::tryToRecv( void ) {
-//	const int _SOCK_BUFFER_SIZE = 1024;
-//
-//	char buf[_SOCK_BUFFER_SIZE] = {0};
-//
-//	string _res;
-//	int rd = 0;
-//	while ((rd = recv(_fd, buf, _SOCK_BUFFER_SIZE - 1, 0)) > 0) {
-//		buf[rd] = 0;
-//		_res += buf;
-//	}
-//
-//	return _res;
-//}
