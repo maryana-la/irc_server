@@ -22,6 +22,7 @@ void Server::begin() {
 	memset(&hints, 0, sizeof hints);
 	hints.ai_family = AF_UNSPEC;
 	hints.ai_socktype = SOCK_STREAM;
+
 	if ((getaddrinfo(_host.c_str(), _port.c_str(), &hints, &res)) != 0)
 		throw std::runtime_error("Port/address errorMain");
 	if ((_socketFd = socket(res->ai_family, res->ai_socktype, res->ai_protocol)) == -1)
@@ -83,8 +84,28 @@ void Server::exec() {
 				if (fcntl(clientSocket, F_SETFL, O_NONBLOCK) == -1) {
 					throw std::runtime_error("fcntl errorMain");
 				}
+
+
+//
+//				if (srvPoll.revents & POLLIN) {
+//					if ((new_client_fd = accept(srvFd, (struct sockaddr*)&clientaddr, (socklen_t*)&addrlen)) > 0) {
+//						struct pollfd nw;
+//
+//						nw.fd = new_client_fd;
+//						nw.events = POLLIN;
+//						nw.revents = 0;
+//						userData.push_back(new User(srvFd, nw.fd, clientaddr));
+//						userFds.push_back(nw);
+//						std::cout << "New client on " << new_client_fd << " socket." << "\n";
+//					}
+//					srvPoll.revents = 0;
+//				}
+//
+
+
+
 				std::cout << "new fd:" << clientSocket << std::endl;
-				Client *user = new Client(clientSocket);
+				Client *user = new Client(clientSocket, clientAddr);
 				_users.push_back(user);
 			} else {
 				try {
@@ -92,7 +113,7 @@ void Server::exec() {
 					std::string receivedMsg = recvMessage(curUser->getSockFd());
 					curUser->messageAppend(receivedMsg);
 					if (curUser->getReadCompleteStatus()) {
-						std::cout << "from fd " << curUser->getNick() << " to parser: " << curUser->getMessage();
+//						std::cout << "from fd " << curUser->getNick() << " to parser: " << curUser->getMessage();
 						parser(curUser, curUser->getMessage());
 					}
 				} catch (std::runtime_error &e) {

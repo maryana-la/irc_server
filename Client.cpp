@@ -1,6 +1,16 @@
+#include <netinet/in.h>
 #include "Client.hpp"
 
-Client::Client(int socketFd) : _sockFd(socketFd), _nickname(""), _passValid(false), _registered(false), _isInvisible(false) {}
+Client::Client(int socketFd, struct sockaddr_in address) : _sockFd(socketFd) {
+	_nickname = "";
+	_passValid = false;
+	_registered = false;
+	_isInvisible = false;
+	sockaddr = address;
+	char ip[INET_ADDRSTRLEN];
+	inet_ntop( AF_INET, &sockaddr.sin_addr, ip, INET_ADDRSTRLEN );
+	_host = ip;
+}
 
 Client::~Client() {}
 
