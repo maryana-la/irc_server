@@ -1,4 +1,5 @@
-#include "Server.hpp"
+#include "Channel.hpp"
+#include "Utils.hpp"
 
 Channel::Channel(const std::string& channel_name, Client &user, const std::string &host) : _name(channel_name), _host(host) {
 	_key = "";
@@ -111,8 +112,6 @@ bool Channel::isChannelUser (Client *client) {
 void Channel::setTopic(const std::string &topic) { _topic = topic; }
 
 void Channel::setTopicOperOnly(bool status) { _topicOperOnly = status; }
-
-//void Channel::setInviteOnlyFlag (bool status) { _inviteOnlyFlag = status; }
 
 void Channel::setMaxUsers (long int num) {
 	if (num > 0)

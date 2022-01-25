@@ -129,13 +129,3 @@ void Server::setUserModes(Client &client, std::vector<std::string> &args) {
 	if (ClientToUpd->getNick() != client.getNick())
 		sendMessage(RPL_UMODEIS(ClientToUpd->getNick(), modes), ClientToUpd->getSockFd());
 }
-
-bool Server::isServerOperator(Client *client) {
-	std::set<Client *>::iterator it = _operators.begin();
-	std::set<Client *>::iterator ite = _operators.end();
-	for (; it != ite; it++) {
-		if (*it == client)
-			return true;
-	}
-	return false;
-}

@@ -1,4 +1,4 @@
-#include "Server.hpp"
+#include "Client.hpp"
 
 Client::Client(int socketFd) : _sockFd(socketFd), _nickname(""), _passValid(false), _registered(false), _isInvisible(false) {}
 

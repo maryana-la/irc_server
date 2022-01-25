@@ -120,17 +120,6 @@ void Server::exec() {
 	}
 }
 
-void Server::removeClient(Client *user) {
-	std::vector<Client *>::iterator it = _users.begin();
-	std::vector<Client *>::iterator ite = _users.end();
-	for (; it != ite; it++) {
-		if (*it == user) {
-			_users.erase(it);
-			break;
-		}
-	}
-}
-
 /**
  * функция для получения сообщения
  * @param fd фдшник, с которого мы получаем сообщение

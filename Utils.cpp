@@ -1,4 +1,5 @@
 #include "Server.hpp"
+#include "Utils.hpp"
 
 
 void sendMessage(const std::string &msg, int socket_fd) {
@@ -51,11 +52,6 @@ std::string	intToString(long int num) {
 	return(ss.str());
 }
 
-//Channels names are strings (beginning with a '&', '#', '+' or '!' character) of length up to 50 characters.
-//Channel names are case insensitive. The only restriction on a channel name is that it SHALL NOT contain any spaces,
-//a control G (ASCII 7) or a comma (',' which is used as a list item separator by the protocol).
-//A colon (':') is used as a delimiter for the channel mask.
-// Channels with '&' as prefix are local to the server where they are created.
 int checkValidChannelName(const std::string &name) {
 	if (name.length() > 50 || name.find_first_of("&#+!") != 0)
 		return 0;
@@ -65,54 +61,3 @@ int checkValidChannelName(const std::string &name) {
 	}
 	return 1;
 }
-
-Client *Server::findClient(const std::string &clientNick){
-	std::vector<Client*>::iterator it = _users.begin();
-	std::vector<Client*>::iterator ite = _users.end();
-	for(; it !=ite; it++) {
-		if ((*it)->getNick() == clientNick)
-			return (*it);
-	}
-	return NULL;
-}
-
-Channel *Server::findChannel(const std::string &channelName){
-	std::vector<Channel*>::iterator it = _channels.begin();
-	std::vector<Channel*>::iterator ite = _channels.end();
-	for(; it !=ite; it++){
-		if ((*it)->getChannelName() == channelName)
-			return (*it);
-	}
-	return NULL;
-}
-
-void Server::removeOperator(Client *client) { _operators.erase(client); }
-
-void Server::leaveChannel(Client &client, Channel *channel) {
-	if (!channel)
-		return;
-	channel->deleteUser(client);
-	channel->deleteOperator(client);
-	if(!channel->getNumUsers()){  //remove channel if no users
-		std::vector<Channel *>::iterator itCh = _channels.begin();
-		std::vector<Channel *>::iterator iteCh = _channels.end();
-		for (; itCh != iteCh; itCh++) {
-			if ((*itCh)->getChannelName() == channel->getChannelName())
-				_channels.erase(itCh);
-		}
-	}
-}
-
-std::string Server::prefixCompose(Client &client) {
-	std::string msg;
-	msg = ":" + client.getNick() + "!" + client.getUsername() + "@" + getHost() + " ";
-	return msg;
-}
-
-/* client - who made an action, channel - where action was made */
-void Server::standartReply(Client &client, Channel *channel, const std::string &command, const std::string &param) {//todo add : for join before param for join?
-	std::string msg;
-	msg = prefixCompose(client) + command + " " + param + "\n";
-	channel->sendMsgToChan(msg, &client, true);
-}
-

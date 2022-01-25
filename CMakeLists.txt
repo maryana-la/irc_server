@@ -11,11 +11,11 @@ add_executable(ft_irc
         registrationCMD.cpp
         Channel.cpp
         Client.cpp
-        modeCommand.cpp
-        serverCommands.cpp 
-        joinCommand.cpp 
-        privmsgCommand.cpp
-        )
+        modeCMD.cpp
+        serverCommands.cpp
+        channelCMD.cpp
+        privmsgCMD.cpp
+        Client.hpp Channel.hpp Utils.hpp ServerUtils.cpp extraCMD.cpp)
 
 
 add_executable(bot
