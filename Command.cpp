@@ -9,7 +9,7 @@ void Server::parser(Client *client, std::string msg) {
 
 	/* find command and execute */
 
-	for (int i = 0; i < common.size(); i++)
+	for (unsigned int i = 0; i < common.size(); i++)
 	{
 		try
 		{
@@ -225,4 +225,3 @@ void Server::kickExec (Client &client, std::vector<std::string> &args) {
 		}
 	}
 }
-

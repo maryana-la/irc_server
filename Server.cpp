@@ -11,7 +11,7 @@
 //#include "Client.hpp"
 
 
-Server::Server(const std::string *host, const std::string &port, const std::string &password)
+Server::Server(const std::string &host, const std::string &port, const std::string &password)
 		: _socketFd(-1), _host(host), _port(port), _password(password), _maxNumberOfChannels(30) {
 	_operator_login.insert(std::make_pair("jjacquel", "ircserv"));
 	_operator_login.insert(std::make_pair("rchelsea", "ircserv"));
@@ -31,7 +31,7 @@ void Server::init() {
 	hints.ai_flags = AI_PASSIVE;     // заполните мой IP-адрес за меня
 //	getaddrinfo("10.21.34.84", _port.c_str(), &hints, &servinfo) != 0)
 
-	if (getaddrinfo(_host ? this->_host->c_str() : NULL, this->_port.c_str(), &hints, &serverInfo) != 0) {
+	if (getaddrinfo(_host != "127.0.0.1" ? this->_host.c_str() : "127.0.0.1", this->_port.c_str(), &hints, &serverInfo) != 0) {
 		throw std::runtime_error("getaddrinfo error");
 	}
 	for (rp = serverInfo; rp != nullptr; rp = rp->ai_next) {
@@ -140,7 +140,7 @@ void Server::acceptProcess() {
 			Client *user = findClientbyFd(nowPollfd.fd);
 			if (user == NULL)
 				continue;
-			forceQuit(*user, static_cast<std::string>("Connection lost"));
+			forceQuit(*user);
 		}
 	}
 }

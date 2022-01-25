@@ -102,7 +102,8 @@ void Server::quitExec(Client &client, std::vector<std::string> &args) {
 	std::cout << client.getNick() << " has quited\n";
 }
 
-void Server::forceQuit(Client &client, std::string args) {
+void Server::forceQuit(Client &client)
+{
 	std::string msg = prefixCompose(client) + "QUIT ::Connection lost\n";
 	std::vector<Channel*>::iterator itCh = _channels.begin();
 	std::vector<Channel*>::iterator iteCh = _channels.end();
