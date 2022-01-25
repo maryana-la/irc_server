@@ -17,33 +17,36 @@ Server::Server(const std::string &host, const std::string &port, const std::stri
 }
 
 void Server::begin() {
-	int ptr = 1;
+//	int ptr = 1;
 	struct addrinfo hints, *res;
 	memset(&hints, 0, sizeof hints);
 	hints.ai_family = AF_UNSPEC;
 	hints.ai_socktype = SOCK_STREAM;
+	//конвертим айпи в список спецструктур res с одним элементом
 	if ((getaddrinfo(_host.c_str(), _port.c_str(), &hints, &res)) != 0)
-		throw std::runtime_error("Port/address errorMain");
+		throw std::runtime_error("Port/address error");
+	//получаем сокет
 	if ((_socketFd = socket(res->ai_family, res->ai_socktype, res->ai_protocol)) == -1)
-		throw std::runtime_error("Connection errorMain");
-	if (setsockopt(_socketFd, SOL_SOCKET, SO_REUSEADDR, &ptr, sizeof(int)) == -1)
-		throw std::runtime_error("Connection errorMain");
+		throw std::runtime_error("Connection error");
+	//связываем сокет с конкретным адресом в списке res, а не со всем списком
 	if (bind(_socketFd, res->ai_addr, res->ai_addrlen) != 0){
 		close(_socketFd);
-		throw std::runtime_error("Connection errorMain");
+		throw std::runtime_error("Connection error");
 	}
 	freeaddrinfo(res);
+	//устанавливаем режим прослушивания входящих соединений на сокете
 	if (listen(_socketFd, 32) == -1)
-		throw std::runtime_error("listen errorMain");
+		throw std::runtime_error("listen error");
 	pollfd pfd = {_socketFd, POLLIN, 0};
+	//устанавливаем для сокета неблокирующий доступ
 	if (fcntl(_socketFd, F_SETFL, O_NONBLOCK) == -1)
-		throw std::runtime_error("fcntl errorMain");
+		throw std::runtime_error("fcntl error");
 	_fds.push_back(pfd);
 	std::vector<pollfd>::iterator it;
 	while (true) {
 		it = _fds.begin();
 		if (poll(&(*it), _fds.size(), -1) == -1) 
-			throw std::runtime_error("poll errorMain");
+			throw std::runtime_error("poll error");
 		exec();
 	}
 }
@@ -80,7 +83,7 @@ void Server::exec() {
 				pollfd clientPollfd = {clientSocket, POLLIN, 0};
 				_fds.push_back(clientPollfd);
 				if (fcntl(clientSocket, F_SETFL, O_NONBLOCK) == -1) {
-					throw std::runtime_error("fcntl errorMain");
+					throw std::runtime_error("fcntl error");
 				}
 				std::cout << "new fd:" << clientSocket << std::endl;
 				Client *user = new Client(clientSocket);
