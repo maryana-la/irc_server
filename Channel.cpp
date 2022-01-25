@@ -1,7 +1,7 @@
 #include "Channel.hpp"
 #include "Utils.hpp"
 
-Channel::Channel(const std::string& channel_name, Client &user, const std::string &host) : _name(channel_name), _host(host) {
+Channel::Channel(const std::string& channel_name, Client &user) : _name(channel_name) {
 	_key = "";
 	_topic = "";
 	_maxUsers = 30;
@@ -12,8 +12,8 @@ Channel::Channel(const std::string& channel_name, Client &user, const std::strin
 	_maxUsersFlag =false;
 }
 
-Channel::Channel(const std::string& channel_name, const std::string& key, Client &user, const std::string &host) :
-		_name(channel_name), _host(host), _key(key) {
+Channel::Channel(const std::string& channel_name, const std::string& key, Client &user) :
+		_name(channel_name), _key(key) {
 	_topic = "";
 	_maxUsers = 30;
 	_users.push_back(&user);
@@ -54,11 +54,9 @@ void Channel::deleteOperator(Client &user) {
 	_operators.erase(&user);
 	if(_operators.empty() && !_users.empty()) {
 		addOperator(*_users[0]);
-		std::string msg = ":" + user.getNick() + "!" + user.getUsername() + "@" + _host + " MODE " + getChannelName() + " +o " + _users[0]->getNick() + "\n";
+		std::string msg = ":" + user.getNick() + "!" + user.getUsername() + "@" + user.getHost() + " MODE " + getChannelName() + " +o " + _users[0]->getNick() + "\n";
 		sendMsgToChan(msg, &user, true);
 	}
-//	:rch!rch@10.21.34.86 MODE #test +o qw
-		
 }
 
 void Channel::deleteUser(Client &client) {
@@ -141,7 +139,7 @@ void Channel::receiveMsgOfAllChannelUsers(Client &client, Channel *channel) {
 	std::vector<Client*>::iterator ite= _users.end();
 	for (; it != ite; it++) {
 		std::string msg;
-		msg = ":" + (*it)->getNick() + "!" + (*it)->getUsername() + "@" + _host + " " + "JOIN" + " :" +
+		msg = ":" + (*it)->getNick() + "!" + (*it)->getUsername() + "@" + (*it)->getHost() + " " + "JOIN" + " :" +
 			  channel->getChannelName() + "\n";
 		sendMessage(msg, client.getSockFd());
 	}

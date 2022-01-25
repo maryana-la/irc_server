@@ -2,12 +2,12 @@ NAME = ircServ
 
 CC = c++
 
-CPPFLAGS = -Wall -Wextra -Werror  -std=c++98
+CPPFLAGS = -Wall -Wextra -Werror -g -std=c++98 -pedantic
 
 SRC :=\
 main.cpp 	Channel.cpp	Utils.cpp           privmsgCMD.cpp\
 Client.cpp          channelCMD.cpp      registrationCMD.cpp\
-Command.cpp         extraCMD.cpp        serverCommands.cpp\
+Parser.cpp         extraCMD.cpp        serverCommands.cpp\
 Server.cpp 			ServerUtils.cpp     modeCMD.cpp
 
 OBJ := ${SRC:.cpp=.o}

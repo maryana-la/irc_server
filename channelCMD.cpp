@@ -51,9 +51,9 @@ void Server::joinExec(Client &client, std::vector<std::string> &args) {
 				Channel *tmp;
 				/* check if key was provided */
 				if (keys.size() > i)
-					tmp = new Channel(channels[i], keys[i], client, getHost());
+					tmp = new Channel(channels[i], keys[i], client);
 				else
-					tmp = new Channel(channels[i], client, getHost());
+					tmp = new Channel(channels[i], client);
 				_channels.push_back(tmp);
 				standartReply(client, tmp, "JOIN", tmp->getChannelName());
 				sendTopic(client, channels[i]);

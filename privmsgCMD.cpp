@@ -27,7 +27,7 @@ void Server::privmsgExec(Client &client, std::vector<std::string> &args) {
 		else {  //if user nick
 			Client *clientDest = findClient(*it);
 			if (clientDest)
-				sendMessage((":" + client.getNick() + "!" + client.getUsername() + "@" + getHost() + " PRIVMSG " + (*it) + " :" + args[2] + "\n"), clientDest->getSockFd());
+				sendMessage((":" + client.getNick() + "!" + client.getUsername() + "@" + client.getHost() + " PRIVMSG " + (*it) + " :" + args[2] + "\n"), clientDest->getSockFd());
 			else
 				throw static_cast<std::string>(ERR_NOSUCHNICK(*it));
 		}

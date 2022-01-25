@@ -78,7 +78,7 @@ void Server::leaveChannel(Client &client, Channel *channel) {
 
 std::string Server::prefixCompose(Client &client) {
 	std::string msg;
-	msg = ":" + client.getNick() + "!" + client.getUsername() + "@" + getHost() + " ";
+	msg = ":" + client.getNick() + "!" + client.getUsername() + "@" + client.getHost() + " ";
 	return msg;
 }
 

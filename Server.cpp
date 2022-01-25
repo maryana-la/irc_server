@@ -1,16 +1,6 @@
 #include "Server.hpp"
 
-
-#include <netdb.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <cstring>
-#include <array>
-#include <arpa/inet.h>
-
-
-
-Server::Server(const std::string &host, const std::string &port, const std::string &password)
+Server::Server(const std::string *host, const std::string &port, const std::string &password)
 		: _socketFd(-1), _host(host), _port(port), _password(password), _maxNumberOfChannels(30) {
 	_operator_login.insert(std::make_pair("jjacquel", "ircserv"));
 	_operator_login.insert(std::make_pair("rchelsea", "ircserv"));
@@ -22,8 +12,9 @@ void Server::begin() {
 	memset(&hints, 0, sizeof hints);
 	hints.ai_family = AF_UNSPEC;
 	hints.ai_socktype = SOCK_STREAM;
+    hints.ai_flags = AI_PASSIVE;
 
-	if ((getaddrinfo(_host.c_str(), _port.c_str(), &hints, &res)) != 0)
+	if ((getaddrinfo(NULL, _port.c_str(), &hints, &res)) != 0)
 		throw std::runtime_error("Port/address errorMain");
 	if ((_socketFd = socket(res->ai_family, res->ai_socktype, res->ai_protocol)) == -1)
 		throw std::runtime_error("Connection errorMain");
@@ -84,26 +75,6 @@ void Server::exec() {
 				if (fcntl(clientSocket, F_SETFL, O_NONBLOCK) == -1) {
 					throw std::runtime_error("fcntl errorMain");
 				}
-
-
-//
-//				if (srvPoll.revents & POLLIN) {
-//					if ((new_client_fd = accept(srvFd, (struct sockaddr*)&clientaddr, (socklen_t*)&addrlen)) > 0) {
-//						struct pollfd nw;
-//
-//						nw.fd = new_client_fd;
-//						nw.events = POLLIN;
-//						nw.revents = 0;
-//						userData.push_back(new User(srvFd, nw.fd, clientaddr));
-//						userFds.push_back(nw);
-//						std::cout << "New client on " << new_client_fd << " socket." << "\n";
-//					}
-//					srvPoll.revents = 0;
-//				}
-//
-
-
-
 				std::cout << "new fd:" << clientSocket << std::endl;
 				Client *user = new Client(clientSocket, clientAddr);
 				_users.push_back(user);
@@ -112,12 +83,12 @@ void Server::exec() {
 					Client *curUser = findClientbyFd(nowPollfd.fd);
 					std::string receivedMsg = recvMessage(curUser->getSockFd());
 					curUser->messageAppend(receivedMsg);
-					if (curUser->getReadCompleteStatus()) {
-//						std::cout << "from fd " << curUser->getNick() << " to parser: " << curUser->getMessage();
+					if (curUser->getReadCompleteStatus())
 						parser(curUser, curUser->getMessage());
-					}
 				} catch (std::runtime_error &e) {
 					std::cout << e.what() << std::endl;
+                    close(_fds[i].fd);
+                    _fds.erase(_fds.begin() + i);
 				}
 			}
 		}
@@ -146,7 +117,7 @@ std::string Server::recvMessage(int fd) {
 	while (res.find("\r") != std::string::npos)      // Удаляем символ возврата карретки
 		res.erase(res.find("\r"), 1);
 	if (recvByte <= 0) {
-		throw std::runtime_error("fd " + std::to_string(fd) + " disconnected");
+		throw std::runtime_error("fd " + intToString(fd) + " disconnected");
 	}
 	std::cout << "from fd " << fd << ": " << res;
 	return (res);

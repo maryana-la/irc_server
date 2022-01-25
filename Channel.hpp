@@ -11,7 +11,6 @@
 class Channel {
 private:
 	const std::string 		_name;
-	const std::string 		_host;
 	std::string 			_key;
 	std::string 			_topic;
 	long int				_maxUsers;
@@ -24,8 +23,8 @@ private:
 	Channel() {}
 
 public:
-	Channel(const std::string& channel_name, Client &user, const std::string &host);
-	Channel(const std::string& channel_name, const std::string& key, Client &user, const std::string &host);
+	Channel(const std::string& channel_name, Client &user);
+	Channel(const std::string& channel_name, const std::string& key, Client &user);
 
 	/*
 	 *  GETTERS
@@ -66,7 +65,6 @@ public:
 
 	void sendMsgToChan(const std::string &message, Client *client, bool includingClient);
 	void receiveMsgOfAllChannelUsers(Client &client, Channel *channel);
-
 };
 
 

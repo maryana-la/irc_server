@@ -25,7 +25,7 @@ bool Client::getRegisterStatus() const { return _registered; }
 bool Client::getPassStatus() const { return _passValid; }
 bool Client::getInvisibleStatus() const { return _isInvisible; }
 bool Client::getReadCompleteStatus() const { return _readIsComplete; }
-bool Client::checkUserStatus() const { return((_username[0] && _host[0] && _servername[0] && _realname[0])); }
+bool Client::checkUserStatus() const { return((_username[0] && _servername[0] && _realname[0])); }
 
 void Client::setNick(const std::string &name) 			{ _nickname = name; }
 void Client::setUserName (const std::string &name) 		{ _username = name; }

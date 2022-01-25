@@ -58,7 +58,8 @@ void Server::nickExec(Client &client, std::vector<std::string> &args) {
 	client.setNick(args[1]);
 
 	/* check if USER & PASS commands are already done succesfully */
-	if (client.checkUserStatus() && client.getPassStatus()) {
+	if (client.checkUserStatus()){
+//    && client.getPassStatus()) {
 		client.setRegisterStatus();
 		sendMessage(RPL_WELCOME(client.getNick()), client.getSockFd());
 		sendmotd(client);
@@ -79,12 +80,13 @@ void Server::userExec(Client &client, std::vector<std::string> &args) {
 		throw static_cast<std::string>(ERR_ALREADYREGISTRED(client.getNick()));
 
 	client.setUserName(args[1]);
-	client.setHostName(args[2]);
+//	client.setHostName(args[2]);
 	client.setServerName(args[3]);
 	client.setRealName(args[4]);
 
 	/* check if NICK & PASS commands are already done succesfully */
-	if (!client.getNick().empty() && client.getPassStatus()) {
+	if (!client.getNick().empty()){
+//    && client.getPassStatus()) {
 		client.setRegisterStatus();
 		sendMessage(RPL_WELCOME(client.getNick()), client.getSockFd());
 		sendmotd(client);
