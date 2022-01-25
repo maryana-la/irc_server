@@ -17,7 +17,6 @@ Server::Server(const std::string &host, const std::string &port, const std::stri
 }
 
 void Server::begin() {
-//	int ptr = 1;
 	struct addrinfo hints, *res;
 	memset(&hints, 0, sizeof hints);
 	hints.ai_family = AF_UNSPEC;
@@ -37,11 +36,14 @@ void Server::begin() {
 	//устанавливаем режим прослушивания входящих соединений на сокете
 	if (listen(_socketFd, 32) == -1)
 		throw std::runtime_error("listen error");
-	pollfd pfd = {_socketFd, POLLIN, 0};
+
 	//устанавливаем для сокета неблокирующий доступ
 	if (fcntl(_socketFd, F_SETFL, O_NONBLOCK) == -1)
 		throw std::runtime_error("fcntl error");
+	//кладем в масссив дескрипторов первый фд основного сокета
+	pollfd pfd = {_socketFd, POLLIN, 0};
 	_fds.push_back(pfd);
+	//постоянно опрашиваем основной сокет
 	std::vector<pollfd>::iterator it;
 	while (true) {
 		it = _fds.begin();
@@ -51,26 +53,14 @@ void Server::begin() {
 	}
 }
 
-Server::~Server() {
-	_channels.clear();
-}
-
-Client *Server::findClientbyFd(int fd) {
-	std::vector<Client*>::iterator it = _users.begin();
-	std::vector<Client*>::iterator ite = _users.end();
-	for (; it != ite; it++) {
-		if (fd == (*it)->getSockFd()) {
-			return *it;
-		}
-	}
-	return NULL;
-}
 
 void Server::exec() {
 	pollfd nowPollfd;
 	for (unsigned int i = 0; i < _fds.size(); i++) {
 		nowPollfd = _fds[i];
 		if ((nowPollfd.revents & POLLIN) == POLLIN) {
+			//событие пришло с фдшника основного сокета, значит есть подключение нового клиента
+			//выделяем ему свой фдшник и добавляем в массив для опроса, создаём экземпляр клиента
 			if (nowPollfd.fd == _socketFd) {
 				int clientSocket;
 				sockaddr_in clientAddr;
@@ -89,12 +79,13 @@ void Server::exec() {
 				Client *user = new Client(clientSocket);
 				_users.push_back(user);
 			} else {
+				//событие на фд клиента, значит пришло сообщение, читаем и парсим
 				try {
 					Client *curUser = findClientbyFd(nowPollfd.fd);
 					std::string receivedMsg = recvMessage(curUser->getSockFd());
 					curUser->messageAppend(receivedMsg);
 					if (curUser->getReadCompleteStatus()) {
-						std::cout << "from fd " << curUser->getNick() << " to parser: " << curUser->getMessage();
+//						std::cout << "from fd " << curUser->getNick() << " to parser: " << curUser->getMessage();
 						parser(curUser, curUser->getMessage());
 					}
 				} catch (std::runtime_error &e) {
@@ -102,6 +93,7 @@ void Server::exec() {
 				}
 			}
 		}
+		//пришло событие о дисконнекте, делетим клиента
 		if ((nowPollfd.revents & POLLHUP) == POLLHUP) {
 			Client *user = findClientbyFd(nowPollfd.fd);
 			if (user == NULL)
@@ -135,3 +127,18 @@ std::string Server::recvMessage(int fd) {
 	return (res);
 }
 
+
+Server::~Server() {
+	_channels.clear();
+}
+
+Client *Server::findClientbyFd(int fd) {
+	std::vector<Client*>::iterator it = _users.begin();
+	std::vector<Client*>::iterator ite = _users.end();
+	for (; it != ite; it++) {
+		if (fd == (*it)->getSockFd()) {
+			return *it;
+		}
+	}
+	return NULL;
+}
