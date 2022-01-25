@@ -61,3 +61,8 @@ int checkValidChannelName(const std::string &name) {
 	}
 	return 1;
 }
+
+void errorMain() {
+	std::cout << "Argument error, usage: ircserver <port> <password>\n";
+	exit(1);
+}

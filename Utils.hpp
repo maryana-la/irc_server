@@ -9,5 +9,6 @@ std:: vector<std::string> split(const std::string& line, const std::string& deli
 std:: vector<std::string> split_args(const std::string& line);
 std::string	intToString(long int num);
 void sendmotd(Client &client);
+void errorMain();
 
 #endif //FT_IRC_UTILS_HPP

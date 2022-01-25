@@ -20,6 +20,13 @@
 # include <cstdlib>
 # include <algorithm>
 
+#include <cstring>
+#include <errno.h>
+#include <netinet/in.h>
+
+
+
+# define IRC_NOSIGNAL SO_NOSIGPIPE
 
 # include "Client.hpp"
 # include "Channel.hpp"
@@ -52,7 +59,7 @@ public:
 	Server(const std::string &host, const std::string &port, const std::string &password);
 	virtual ~Server();
 
-	void start();
+	void begin();
 	void init();
 	void exec();
 	std::string recvMessage(int fd);

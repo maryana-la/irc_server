@@ -15,7 +15,6 @@ Bot::~Bot(){}
 void Bot::exec() {
 	int sizeReaded;
 	char buffer[1024];
-	char s[INET6_ADDRSTRLEN];
 	struct addrinfo hints, *res;
 	
 	memset(&hints, 0, sizeof hints);
