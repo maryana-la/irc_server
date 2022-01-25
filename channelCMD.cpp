@@ -143,9 +143,6 @@ void Server::kickExec (Client &client, std::vector<std::string> &args) {
 				throw  static_cast<std::string>(ERR_NOTONCHANNEL(client.getNick(), channel->getChannelName()));
 			if(!channel->isChannelUser(user))
 				throw static_cast<std::string>(ERR_NOTONCHANNEL(client.getNick(), channel->getChannelName()));
-//			if(&client == user)
-//				throw ("Cant kick myself, use PART\n"); //todo!!! delete or kick yourself
-
 			/* announce to group and kick */
 			std::string reply;
 			if (args.size() > 3)

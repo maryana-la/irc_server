@@ -32,5 +32,4 @@ void Server::privmsgExec(Client &client, std::vector<std::string> &args) {
 				throw static_cast<std::string>(ERR_NOSUCHNICK(*it));
 		}
 	}
-	//todo add away reply
 }

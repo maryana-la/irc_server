@@ -50,6 +50,7 @@ void Server::begin() {
 
 Server::~Server() {
 	_channels.clear();
+	_users.clear();
 }
 
 Client *Server::findClientbyFd(int fd) {
@@ -121,12 +122,10 @@ std::string Server::recvMessage(int fd) {
 		if (res.find("\n") != std::string::npos)
 			break;
 	}
-
 	while (res.find("\r") != std::string::npos)      // Удаляем символ возврата карретки
 		res.erase(res.find("\r"), 1);
-
 	if (recvByte <= 0) {
-		throw std::runtime_error("fd " + std::to_string(fd) + " disconnected");//todo kill user
+		throw std::runtime_error("fd " + std::to_string(fd) + " disconnected");
 	}
 	std::cout << "from fd " << fd << ": " << res;
 	return (res);
