@@ -20,61 +20,40 @@ Server::Server(const std::string &host, const std::string &port, const std::stri
 /**
  * создание структуры addrinfo, создание сокета и bind
  */
-void Server::init() {
-	int newSocketFd;
-	int yes = 1;
-	struct addrinfo hints, *serverInfo, *rp;
+void Server::init()
+{
 
-	memset(&hints, 0, sizeof hints); // убедимся, что структура пуста
-	hints.ai_family = AF_UNSPEC;     // неважно, IPv4 или IPv6
-	hints.ai_socktype = SOCK_STREAM; // TCP stream-sockets
-	hints.ai_flags = AI_PASSIVE;     // заполните мой IP-адрес за меня
-//	getaddrinfo("10.21.34.84", _port.c_str(), &hints, &servinfo) != 0)
-
-	if (getaddrinfo(_host != "127.0.0.1" ? this->_host.c_str() : "127.0.0.1", this->_port.c_str(), &hints, &serverInfo) != 0) {
-		throw std::runtime_error("getaddrinfo error");
-	}
-	for (rp = serverInfo; rp != nullptr; rp = rp->ai_next) {
-		newSocketFd = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol);
-		if (newSocketFd == -1) {
-			continue;
-		}
-		if (setsockopt(newSocketFd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) == -1) {
-			throw std::runtime_error("setsockopt error");
-		}
-		if (bind(newSocketFd, rp->ai_addr, rp->ai_addrlen) == 0) {
-			break; // Success
-		}
-		close(newSocketFd);
-	}
-	if (rp == nullptr) {
-		throw std::runtime_error("bind error");
-	}
-	freeaddrinfo(serverInfo); /// освобождаем связанный список
-	this->_socketFd = newSocketFd;
 }
 
-/**
- * listen сокета, создание pollfd структуры для этого сокета,
- * добавление в вектор структур, и главный цикл
- */
 void Server::start() {
-	if (listen(this->_socketFd, 10) == -1) {
+	int ptr = 1;
+	struct addrinfo hints, *res;
+	memset(&hints, 0, sizeof hints);
+	hints.ai_family = AF_UNSPEC;
+	hints.ai_socktype = SOCK_STREAM;
+	if ((getaddrinfo(_host.c_str(), _port.c_str(), &hints, &res)) != 0)
+		throw std::runtime_error("Port/address error");
+	if ((_socketFd = socket(res->ai_family, res->ai_socktype, res->ai_protocol)) == -1)
+		throw std::runtime_error("Connection error");
+	if (setsockopt(_socketFd, SOL_SOCKET, SO_REUSEADDR, &ptr, sizeof(int)) == -1)
+		throw std::runtime_error("Connection error");
+	if (bind(_socketFd, res->ai_addr, res->ai_addrlen) != 0){
+		close(_socketFd);
+		throw std::runtime_error("Connection error");
+	}
+	freeaddrinfo(res);
+	if (listen(_socketFd, 32) == -1)
 		throw std::runtime_error("listen error");
-	}
-	pollfd sPollfd = {this->_socketFd, POLLIN, 0};
-	if (fcntl(this->_socketFd, F_SETFL, O_NONBLOCK) == -1) {
+	pollfd pfd = {_socketFd, POLLIN, 0};
+	if (fcntl(_socketFd, F_SETFL, O_NONBLOCK) == -1)
 		throw std::runtime_error("fcntl error");
-	}
-	this->_fds.push_back(sPollfd);
+	_fds.push_back(pfd);
 	std::vector<pollfd>::iterator it;
 	while (true) {
-		it = this->_fds.begin();
-		if (poll(&(*it), this->_fds.size(), -1) == -1) {
+		it = _fds.begin();
+		if (poll(&(*it), _fds.size(), -1) == -1)
 			throw std::runtime_error("poll error");
-		}
-		///после этого нужно что-то сделать с тем, что нам пришло после poll
-		this->acceptProcess();
+		exec();
 	}
 }
 
@@ -95,35 +74,31 @@ Client *Server::findClientbyFd(int fd) {
 	return NULL;
 }
 
-void Server::acceptProcess() {
+void Server::exec() {
 	pollfd nowPollfd;
 
-	for (unsigned int i = 0; i < this->_fds.size(); i++) {
-		nowPollfd = this->_fds[i];
-
+	for (unsigned int i = 0; i < _fds.size(); i++) {
+		nowPollfd = _fds[i];
 		if ((nowPollfd.revents & POLLIN) == POLLIN) { ///можно считать данные
-
-			if (nowPollfd.fd == this->_socketFd) { ///accept
+			if (nowPollfd.fd == _socketFd) { ///accept
 				int clientSocket;
 				sockaddr_in clientAddr;
 				memset(&clientAddr, 0, sizeof(clientAddr));
 				socklen_t socketLen = sizeof(clientAddr);
-				clientSocket = accept(this->_socketFd, (sockaddr *) &clientAddr, &socketLen);
+				clientSocket = accept(_socketFd, (sockaddr *) &clientAddr, &socketLen);
 				if (clientSocket == -1) {
 					continue;
 				}
 				pollfd clientPollfd = {clientSocket, POLLIN, 0};
-				this->_fds.push_back(clientPollfd);
+				_fds.push_back(clientPollfd);
 				if (fcntl(clientSocket, F_SETFL, O_NONBLOCK) == -1) {
 					throw std::runtime_error("fcntl error");
 				}
 				std::cout << "new fd:" << clientSocket << std::endl;
-//				std::cout << "sfd:" << this->_socketFd << std::endl;
 				Client *user = new Client(clientSocket);
-				this->_users.push_back(user);
+				_users.push_back(user);
 			} else { ///нужно принять данные не с основного сокета, который мы слушаем(клиентского?)
 				try {
-//					std::cout << "fd: " << nowPollfd.fd << std::endl;
 					Client *curUser = findClientbyFd(nowPollfd.fd);
 					std::string receivedMsg = recvMessage(curUser->getSockFd());
 					curUser->messageAppend(receivedMsg);
