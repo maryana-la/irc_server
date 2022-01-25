@@ -2,7 +2,7 @@
 
 void sendmotd(Client &client) {
 	sendMessage(RPL_MOTDSTART(client.getNick()), client.getSockFd());
-	sendMessage(RPL_MOTD(client.getNick(), (std::string)"comment"), client.getSockFd());
+	sendMessage(RPL_MOTD(client.getNick(), (std::string)"*** SCHOOL21 IRC network ***"), client.getSockFd());
 	sendMessage(RPL_ENDOFMOTD(client.getNick()), client.getSockFd());
 
 }

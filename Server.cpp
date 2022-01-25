@@ -7,53 +7,42 @@ Server::Server(const std::string *host, const std::string &port, const std::stri
 }
 
 void Server::begin() {
-	int ptr = 1;
 	struct addrinfo hints, *res;
 	memset(&hints, 0, sizeof hints);
 	hints.ai_family = AF_UNSPEC;
 	hints.ai_socktype = SOCK_STREAM;
     hints.ai_flags = AI_PASSIVE;
 
+    //конвертим айпи в список спецструктур res с одним элементом
 	if ((getaddrinfo(NULL, _port.c_str(), &hints, &res)) != 0)
-		throw std::runtime_error("Port/address errorMain");
-	if ((_socketFd = socket(res->ai_family, res->ai_socktype, res->ai_protocol)) == -1)
-		throw std::runtime_error("Connection errorMain");
-	if (setsockopt(_socketFd, SOL_SOCKET, SO_REUSEADDR, &ptr, sizeof(int)) == -1)
-		throw std::runtime_error("Connection errorMain");
+		throw std::runtime_error("Port/address error");
+    //получаем сокет
+    if ((_socketFd = socket(res->ai_family, res->ai_socktype, res->ai_protocol)) == -1)
+		throw std::runtime_error("Connection error");
+	//связываем сокет с конкретным адресом в списке res, а не со всем списком
 	if (bind(_socketFd, res->ai_addr, res->ai_addrlen) != 0){
 		close(_socketFd);
-		throw std::runtime_error("Connection errorMain");
+		throw std::runtime_error("Connection error");
 	}
 	freeaddrinfo(res);
+	//устанавливаем режим прослушивания входящих соединений на сокете
 	if (listen(_socketFd, 32) == -1)
-		throw std::runtime_error("listen errorMain");
-	pollfd pfd = {_socketFd, POLLIN, 0};
+		throw std::runtime_error("listen error");
+
+	//устанавливаем для сокета неблокирующий доступ
 	if (fcntl(_socketFd, F_SETFL, O_NONBLOCK) == -1)
-		throw std::runtime_error("fcntl errorMain");
+		throw std::runtime_error("fcntl error");
+	//кладем в масссив дескрипторов первый фд основного сокета
+	pollfd pfd = {_socketFd, POLLIN, 0};
 	_fds.push_back(pfd);
+	//постоянно опрашиваем основной сокет
 	std::vector<pollfd>::iterator it;
 	while (true) {
 		it = _fds.begin();
 		if (poll(&(*it), _fds.size(), -1) == -1) 
-			throw std::runtime_error("poll errorMain");
+			throw std::runtime_error("poll error");
 		exec();
 	}
-}
-
-Server::~Server() {
-	_channels.clear();
-	_users.clear();
-}
-
-Client *Server::findClientbyFd(int fd) {
-	std::vector<Client*>::iterator it = _users.begin();
-	std::vector<Client*>::iterator ite = _users.end();
-	for (; it != ite; it++) {
-		if (fd == (*it)->getSockFd()) {
-			return *it;
-		}
-	}
-	return NULL;
 }
 
 void Server::exec() {
@@ -61,6 +50,8 @@ void Server::exec() {
 	for (unsigned int i = 0; i < _fds.size(); i++) {
 		nowPollfd = _fds[i];
 		if ((nowPollfd.revents & POLLIN) == POLLIN) {
+			//событие пришло с фдшника основного сокета, значит есть подключение нового клиента
+			//выделяем ему свой фдшник и добавляем в массив для опроса, создаём экземпляр клиента
 			if (nowPollfd.fd == _socketFd) {
 				int clientSocket;
 				sockaddr_in clientAddr;
@@ -73,12 +64,13 @@ void Server::exec() {
 				pollfd clientPollfd = {clientSocket, POLLIN, 0};
 				_fds.push_back(clientPollfd);
 				if (fcntl(clientSocket, F_SETFL, O_NONBLOCK) == -1) {
-					throw std::runtime_error("fcntl errorMain");
+					throw std::runtime_error("fcntl error");
 				}
 				std::cout << "new fd:" << clientSocket << std::endl;
 				Client *user = new Client(clientSocket, clientAddr);
 				_users.push_back(user);
 			} else {
+				//событие на фд клиента, значит пришло сообщение, читаем и парсим
 				try {
 					Client *curUser = findClientbyFd(nowPollfd.fd);
 					std::string receivedMsg = recvMessage(curUser->getSockFd());
@@ -87,11 +79,12 @@ void Server::exec() {
 						parser(curUser, curUser->getMessage());
 				} catch (std::runtime_error &e) {
 					std::cout << e.what() << std::endl;
-                    close(_fds[i].fd);
-                    _fds.erase(_fds.begin() + i);
+//                    close(_fds[i].fd);
+//                    _fds.erase(_fds.begin() + i);
 				}
 			}
 		}
+		//пришло событие о дисконнекте, делетим клиента
 		if ((nowPollfd.revents & POLLHUP) == POLLHUP) {
 			Client *user = findClientbyFd(nowPollfd.fd);
 			if (user == NULL)
@@ -123,3 +116,19 @@ std::string Server::recvMessage(int fd) {
 	return (res);
 }
 
+
+Server::~Server() {
+	_channels.clear();
+    _users.clear();
+}
+
+Client *Server::findClientbyFd(int fd) {
+	std::vector<Client*>::iterator it = _users.begin();
+	std::vector<Client*>::iterator ite = _users.end();
+	for (; it != ite; it++) {
+		if (fd == (*it)->getSockFd()) {
+			return *it;
+		}
+	}
+	return NULL;
+}
