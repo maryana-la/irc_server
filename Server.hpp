@@ -27,15 +27,12 @@
 
 
 
-//# define IRC_NOSIGNAL SO_NOSIGPIPE
-
 # include "Client.hpp"
 # include "Channel.hpp"
 # include "Utils.hpp"
 # include "Error_Reply.hpp"
 
 #define NICK_VALIDSET		"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890-_[]{}\'|"
-//# define IRC_NOSIGNAL MSG_NOSIGNAL //from levensta
 
 
 class Channel;
@@ -46,6 +43,8 @@ class Client;
 class Server {
 private:
 	int _socketFd;
+	sockaddr_in _sockaddr;
+	in_addr_t _allowedIP;
 	const std::string *_host;
 	const std::string &_port;
 	const std::string &_password;
@@ -61,7 +60,6 @@ public:
 	virtual ~Server();
 
 	void begin();
-	void init();
 	void exec();
 	std::string recvMessage(int fd);
 	Client *findClientbyFd(int fd);
@@ -86,6 +84,7 @@ public:
 
 	/* privmsg command */
 	void privmsgExec(Client &client, std::vector<std::string> &args);
+	void noticeExec(Client &client, std::vector<std::string> &args);
 
 	/* mode */
 	void modeExec(Client &client, std::vector<std::string> &args);

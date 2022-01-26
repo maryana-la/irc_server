@@ -2,47 +2,53 @@
 
 Server::Server(const std::string *host, const std::string &port, const std::string &password)
 		: _socketFd(-1), _host(host), _port(port), _password(password), _maxNumberOfChannels(30) {
+	_allowedIP = inet_addr("0.0.0.0");
 	_operator_login.insert(std::make_pair("jjacquel", "ircserv"));
 	_operator_login.insert(std::make_pair("rchelsea", "ircserv"));
 }
 
 void Server::begin() {
-	struct addrinfo hints, *res;
-	memset(&hints, 0, sizeof hints);
-	hints.ai_family = AF_UNSPEC;
-	hints.ai_socktype = SOCK_STREAM;
-    hints.ai_flags = AI_PASSIVE;
+	//получаем сокет
+	if ((_socketFd = socket(AF_INET, SOCK_STREAM, 0)) == -1)
+		throw std::runtime_error("Connection error: socket");
 
-    //конвертим айпи в список спецструктур res с одним элементом
-	if ((getaddrinfo(NULL, _port.c_str(), &hints, &res)) != 0)
-		throw std::runtime_error("Port/address error");
-    //получаем сокет
-    if ((_socketFd = socket(res->ai_family, res->ai_socktype, res->ai_protocol)) == -1)
-		throw std::runtime_error("Connection error");
+	//настраиваем сокет на повторное использование адреса при перезапуске сервера
+	const int trueFlag = 1;
+	if (setsockopt(_socketFd, SOL_SOCKET, SO_REUSEADDR, &trueFlag, sizeof(int)) < 0)
+		throw std::runtime_error("Connection error: setsockopt");
+
+	//	структура позволяет обращаться элементам адреса сокета
+	_sockaddr.sin_family = AF_INET; // cемейство адресов, AF_INET
+	_sockaddr.sin_addr.s_addr = INADDR_ANY; // = INADDR_ANY; // используйте мой IPv4 адрес
+	_sockaddr.sin_port = htons(strtol(_port.c_str(), NULL, 10)); // преобразовывает числа в порядок байтов сети
+
 	//связываем сокет с конкретным адресом в списке res, а не со всем списком
-	if (bind(_socketFd, res->ai_addr, res->ai_addrlen) != 0){
+	if (bind(_socketFd, (struct sockaddr*)&_sockaddr, sizeof(sockaddr)) < 0) {
 		close(_socketFd);
-		throw std::runtime_error("Connection error");
+		throw std::runtime_error("Connection error: bind");
 	}
-	freeaddrinfo(res);
-	//устанавливаем режим прослушивания входящих соединений на сокете
-	if (listen(_socketFd, 32) == -1)
-		throw std::runtime_error("listen error");
 
+	//устанавливаем режим прослушивания входящих соединений на сокете
+	if (listen(_socketFd, 32) < 0) {
+		throw std::runtime_error("listen error");
+	}
 	//устанавливаем для сокета неблокирующий доступ
 	if (fcntl(_socketFd, F_SETFL, O_NONBLOCK) == -1)
 		throw std::runtime_error("fcntl error");
+
 	//кладем в масссив дескрипторов первый фд основного сокета
 	pollfd pfd = {_socketFd, POLLIN, 0};
 	_fds.push_back(pfd);
+
 	//постоянно опрашиваем основной сокет
 	std::vector<pollfd>::iterator it;
 	while (true) {
 		it = _fds.begin();
-		if (poll(&(*it), _fds.size(), -1) == -1) 
+		if (poll(&(*it), _fds.size(), -1) == -1)
 			throw std::runtime_error("poll error");
 		exec();
 	}
+
 }
 
 void Server::exec() {
@@ -79,8 +85,6 @@ void Server::exec() {
 						parser(curUser, curUser->getMessage());
 				} catch (std::runtime_error &e) {
 					std::cout << e.what() << std::endl;
-//                    close(_fds[i].fd);
-//                    _fds.erase(_fds.begin() + i);
 				}
 			}
 		}
