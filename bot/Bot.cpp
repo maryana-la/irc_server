@@ -56,7 +56,7 @@ void Bot::doIt(std::string message) {
 	std::vector<std::string> sender = split(message, "!:");
 	
 	if (message.find("PRIVMSG MagicBot") != message.npos){
-		if(_isFirst){
+		if(!_isFirst){
 			sendMessage("PRIVMSG " + sender[0] + " " + ":Задай мне вопрос с ответом да или нет и я дам тебе ответ на него!\n");
 			sleep(2);
 			_isFirst = false;
