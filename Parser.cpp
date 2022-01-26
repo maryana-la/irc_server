@@ -35,6 +35,8 @@ void Server::parser(Client *client, std::string msg) {
 				privmsgExec(*client, args);
 			else if (args[0] == "NOTICE" || args[0] == "notice")
 				noticeExec(*client, args);
+			else if (args[0] == "AWAY" || args[0] == "away")
+				awayExec(*client, args);
 			else if (args[0] == "PING" || args[0] == "ping")
 				pingExec(*client, args);
 			else if (args[0] == "TOPIC" || args[0] == "topic")

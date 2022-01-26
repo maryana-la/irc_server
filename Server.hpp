@@ -25,8 +25,6 @@
 #include <errno.h>
 #include <netinet/in.h>
 
-
-
 # include "Client.hpp"
 # include "Channel.hpp"
 # include "Utils.hpp"
@@ -85,6 +83,8 @@ public:
 	/* privmsg command */
 	void privmsgExec(Client &client, std::vector<std::string> &args);
 	void noticeExec(Client &client, std::vector<std::string> &args);
+	void awayExec(Client &client, std::vector<std::string> &args);
+
 
 	/* mode */
 	void modeExec(Client &client, std::vector<std::string> &args);

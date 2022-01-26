@@ -26,9 +26,12 @@ void Server::privmsgExec(Client &client, std::vector<std::string> &args) {
 		}
 		else {  //if user nick
 			Client *clientDest = findClient(*it);
-			if (clientDest)
-				sendMessage((":" + client.getNick() + "!" + client.getUsername() + "@" + client.getHost() + " PRIVMSG " + (*it) + " :" + args[2] + "\n"), clientDest->getSockFd());
-			else
+			if (clientDest) {
+				sendMessage((":" + client.getNick() + "!" + client.getUsername() + "@" + client.getHost() + " PRIVMSG " +
+							 (*it) + " :" + args[2] + "\n"), clientDest->getSockFd());
+				if (clientDest->getAwayMessage() != "")
+					sendMessage(RPL_AWAY(clientDest->getNick(), clientDest->getAwayMessage()), client.getSockFd());
+			} else
 				throw static_cast<std::string>(ERR_NOSUCHNICK(*it));
 		}
 	}
@@ -65,6 +68,17 @@ void Server::noticeExec(Client &client, std::vector<std::string> &args) {
 			else
 				throw static_cast<std::string>(ERR_NOSUCHNICK(*it));
 		}
+	}
+}
+
+void Server::awayExec(Client &client, std::vector<std::string> &args) {
+	if (args.size() == 1) {
+		client.setAwayMessage("");
+		sendMessage(RPL_UNAWAY(client.getNick()), client.getSockFd());
+	}
+	else {
+		client.setAwayMessage(args[1]);
+		sendMessage(RPL_NOWAWAY(client.getNick()), client.getSockFd());
 	}
 }
 

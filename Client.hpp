@@ -47,6 +47,7 @@ public:
 	std::string	getHost() const;
 	std::string getRealname() const;
 	std::string getMessage() const;
+	std::string getAwayMessage() const;
 	bool 		getRegisterStatus() const;
 	bool 		getPassStatus() const;
 	bool 		getInvisibleStatus() const;
@@ -58,7 +59,7 @@ public:
 	void setHostName (const std::string &name);
 	void setServerName (const std::string &name);
 	void setRealName (const std::string &name);
-
+	void setAwayMessage (const std::string &msg);
 	void setPassStatus();
 	void setRegisterStatus();
 	void setInvisibleStatus(bool status);
