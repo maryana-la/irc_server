@@ -33,6 +33,8 @@ void Server::parser(Client *client, std::string msg) {
 				listExec(*client, args);
 			else if (args[0] == "PRIVMSG" || args[0] == "privmsg")
 				privmsgExec(*client, args);
+			else if (args[0] == "NOTICE" || args[0] == "notice")
+				noticeExec(*client, args);
 			else if (args[0] == "PING" || args[0] == "ping")
 				pingExec(*client, args);
 			else if (args[0] == "TOPIC" || args[0] == "topic")
@@ -43,8 +45,6 @@ void Server::parser(Client *client, std::string msg) {
 				kickExec(*client, args);
 			else if (args[0] == "MODE" || args[0] == "mode")
 				modeExec(*client, args);
-//			else if (args[0] == "PONG" || args[0] == "pong")
-//				pongExec(*client, args);
 			else if (args[0] == "NAMES" || args[0] == "names")
 				namesExec(*client, args);
 			else if (args[0] == "OPER" || args[0] == "oper")
@@ -57,10 +57,7 @@ void Server::parser(Client *client, std::string msg) {
 				exitExec(*client);
 
 
-
-			//todo clear memory for args in the end
-//			args.clear();
-//			client->clearMessage();
+			args.clear();
 		}
 		catch (std::string &msg) {
 			sendMessage(msg, client->getSockFd());
@@ -72,7 +69,6 @@ void Server::parser(Client *client, std::string msg) {
 		catch (...) {
 			std::cout << "Unknown mistake. Reload project\n";
 		}
-//		args.clear();
 		client->clearMessage();
 	}
 }
