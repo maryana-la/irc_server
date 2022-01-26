@@ -40,7 +40,7 @@ void Server::begin() {
 	pollfd pfd = {_socketFd, POLLIN, 0};
 	_fds.push_back(pfd);
 
-	//постоянно опрашиваем основной сокет
+	//постоянно опрашиваем массив сокетов
 	std::vector<pollfd>::iterator it;
 	while (true) {
 		it = _fds.begin();
