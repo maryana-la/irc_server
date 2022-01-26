@@ -20,17 +20,15 @@
 # include <poll.h>
 # include <cstdlib>
 # include <algorithm>
-
-#include <cstring>
-#include <errno.h>
-#include <netinet/in.h>
+# include <cstring>
+# include <netinet/in.h>
 
 # include "Client.hpp"
 # include "Channel.hpp"
 # include "Utils.hpp"
 # include "Error_Reply.hpp"
 
-#define NICK_VALIDSET		"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890-_[]{}\'|"
+# define NICK_VALIDSET		"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890-_[]{}\'|"
 
 
 class Channel;

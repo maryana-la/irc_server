@@ -4,7 +4,6 @@
 # include <iostream>
 #include <netinet/in.h>
 
-
 # include <sys/poll.h>
 # include <sys/socket.h>
 # include <arpa/inet.h>
@@ -15,7 +14,7 @@
 # include <cstdlib>
 # include <algorithm>
 
-#include <cstring>
+# include <cstring>
 
 class Client {
 private:

@@ -2,7 +2,7 @@ NAME = ircServ
 
 CC = c++
 
-CPPFLAGS = -Wall -Wextra -Werror -g -std=c++98 -pedantic
+CPPFLAGS = -Wall -Wextra -Werror -std=c++98 -pedantic
 
 SRC :=\
 main.cpp 	Channel.cpp	Utils.cpp           privmsgCMD.cpp\
@@ -26,7 +26,7 @@ $(NAME): $(BOT) $(OBJ)
 	@echo DONE!
 
 $(BOT):
-	$(MAKE) -C bot
+	@$(MAKE) -C bot
 
 clean:
 	rm -rf $(OBJ)
