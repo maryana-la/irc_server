@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD 98)
 add_executable(ft_irc 
         main.cpp
         Server.cpp
-        Command.cpp
+        Parser.cpp
         Utils.cpp
         registrationCMD.cpp
         Channel.cpp
@@ -17,8 +17,8 @@ add_executable(ft_irc
         privmsgCMD.cpp
         Client.hpp Channel.hpp Utils.hpp ServerUtils.cpp extraCMD.cpp)
 
-
-add_executable(bot
-        bot/StartBot.cpp
-        bot/Bot.cpp
-        )
+#
+#add_executable(bot
+#        bot/startBot.cpp
+#        bot/Bot.cpp
+#        )

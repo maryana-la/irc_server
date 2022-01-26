@@ -2,17 +2,17 @@ NAME = ircServ
 
 CC = c++
 
-CPPFLAGS = -Wall -Wextra -Werror  -std=c++98
+CPPFLAGS = -Wall -Wextra -Werror -g -std=c++98 -pedantic
 
 SRC :=\
-Channel.cpp         Server.cpp          channelCMD.cpp      modeCMD.cpp         serverCommands.cpp\
-Client.cpp          ServerUtils.cpp     extraCMD.cpp        privmsgCMD.cpp\
-Command.cpp         Utils.cpp           main.cpp            registrationCMD.cpp\
-
+main.cpp 	Channel.cpp	Utils.cpp           privmsgCMD.cpp\
+Client.cpp          channelCMD.cpp      registrationCMD.cpp\
+Parser.cpp         extraCMD.cpp        serverCommands.cpp\
+Server.cpp 			ServerUtils.cpp     modeCMD.cpp
 
 OBJ := ${SRC:.cpp=.o}
 
-HEADERS =Error_Reply.hpp Server.hpp
+HEADERS =Channel.hpp Error_Reply.hpp Utils.hpp Client.hppServer.hpp
 
 BOT	= bot/bot
 

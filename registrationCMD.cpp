@@ -12,7 +12,7 @@ void Server::passExec(Client &client, std::vector<std::string> &args) {
 	/* check amount of args provided */
 	if (args.size() != 2) {
 		std::string comm = "PASS";
-		throw static_cast<std::string>(ERR_NEEDMOREPARAMS(client.getNick(), comm)); //todo maybe kill client
+		throw static_cast<std::string>(ERR_NEEDMOREPARAMS(client.getNick(), comm));
 	}
 
 	/* check is registered */
@@ -22,10 +22,8 @@ void Server::passExec(Client &client, std::vector<std::string> &args) {
 	/* if  password is correct */
 	if (args[1] == _password) {
 		client.setPassStatus();
-	} else { /* if password is not correct */
-//        sendMessage("password is not correct\n", client.getSockFd());
-		return; // todo maybe kill client?
-	}
+	} else /* if password is not correct */
+		forceQuit(client);
 
 	/* check is USER & NICK are already filled */
 	if (client.checkUserStatus() && !client.getNick().empty()) {
@@ -60,7 +58,8 @@ void Server::nickExec(Client &client, std::vector<std::string> &args) {
 	client.setNick(args[1]);
 
 	/* check if USER & PASS commands are already done succesfully */
-	if (client.checkUserStatus() && client.getPassStatus()) {
+	if (client.checkUserStatus()){
+//    && client.getPassStatus()) {
 		client.setRegisterStatus();
 		sendMessage(RPL_WELCOME(client.getNick()), client.getSockFd());
 		sendmotd(client);
@@ -80,15 +79,14 @@ void Server::userExec(Client &client, std::vector<std::string> &args) {
 	if (client.getRegisterStatus())
 		throw static_cast<std::string>(ERR_ALREADYREGISTRED(client.getNick()));
 
-	//todo check if stings are valid characters
-
 	client.setUserName(args[1]);
-	client.setHostName(args[2]);
+//	client.setHostName(args[2]);
 	client.setServerName(args[3]);
 	client.setRealName(args[4]);
 
 	/* check if NICK & PASS commands are already done succesfully */
-	if (!client.getNick().empty() && client.getPassStatus()) {
+	if (!client.getNick().empty()){
+//    && client.getPassStatus()) {
 		client.setRegisterStatus();
 		sendMessage(RPL_WELCOME(client.getNick()), client.getSockFd());
 		sendmotd(client);

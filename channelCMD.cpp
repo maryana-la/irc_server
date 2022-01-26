@@ -51,9 +51,9 @@ void Server::joinExec(Client &client, std::vector<std::string> &args) {
 				Channel *tmp;
 				/* check if key was provided */
 				if (keys.size() > i)
-					tmp = new Channel(channels[i], keys[i], client, getHost());
+					tmp = new Channel(channels[i], keys[i], client);
 				else
-					tmp = new Channel(channels[i], client, getHost());
+					tmp = new Channel(channels[i], client);
 				_channels.push_back(tmp);
 				standartReply(client, tmp, "JOIN", tmp->getChannelName());
 				sendTopic(client, channels[i]);
@@ -143,9 +143,6 @@ void Server::kickExec (Client &client, std::vector<std::string> &args) {
 				throw  static_cast<std::string>(ERR_NOTONCHANNEL(client.getNick(), channel->getChannelName()));
 			if(!channel->isChannelUser(user))
 				throw static_cast<std::string>(ERR_NOTONCHANNEL(client.getNick(), channel->getChannelName()));
-//			if(&client == user)
-//				throw ("Cant kick myself, use PART\n"); //todo!!! delete or kick yourself
-
 			/* announce to group and kick */
 			std::string reply;
 			if (args.size() > 3)

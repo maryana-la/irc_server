@@ -2,6 +2,20 @@
 #define FT_IRC_CLIENT_HPP
 
 # include <iostream>
+#include <netinet/in.h>
+
+
+# include <sys/poll.h>
+# include <sys/socket.h>
+# include <arpa/inet.h>
+# include <netdb.h>
+# include <fcntl.h>
+# include <unistd.h>
+# include <poll.h>
+# include <cstdlib>
+# include <algorithm>
+
+#include <cstring>
 
 class Client {
 private:
@@ -20,8 +34,10 @@ private:
 	bool	_isInvisible;
 	bool 	_readIsComplete;
 
+	struct sockaddr_in          sockaddr;
+
 public:
-	Client(int socketFd);
+	Client(int socketFd, struct sockaddr_in address);
 	~Client();
 
 	int			getSockFd() const;

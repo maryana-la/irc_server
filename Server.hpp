@@ -5,6 +5,7 @@
 # include <sstream>
 # include <iomanip>
 # include <string>
+# include <cstring>
 # include <stdexcept>
 # include <vector>
 # include <set>
@@ -26,7 +27,7 @@
 
 
 
-# define IRC_NOSIGNAL SO_NOSIGPIPE
+//# define IRC_NOSIGNAL SO_NOSIGPIPE
 
 # include "Client.hpp"
 # include "Channel.hpp"
@@ -34,7 +35,7 @@
 # include "Error_Reply.hpp"
 
 #define NICK_VALIDSET		"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890-_[]{}\'|"
-# define IRC_NOSIGNAL SO_NOSIGPIPE //from levensta
+//# define IRC_NOSIGNAL MSG_NOSIGNAL //from levensta
 
 
 class Channel;
@@ -45,7 +46,7 @@ class Client;
 class Server {
 private:
 	int _socketFd;
-	const std::string _host;
+	const std::string *_host;
 	const std::string &_port;
 	const std::string &_password;
 	std::vector<pollfd> _fds;
@@ -56,7 +57,7 @@ private:
 	int _maxNumberOfChannels;
 
 public:
-	Server(const std::string &host, const std::string &port, const std::string &password);
+	Server(const std::string *host, const std::string &port, const std::string &password);
 	virtual ~Server();
 
 	void begin();
@@ -66,7 +67,7 @@ public:
 	Client *findClientbyFd(int fd);
 	void parser(Client *client, std::string msg);
 
-	std::string getHost() const { return _host; }
+	std::string getHost() const { return *_host; }
 
 
     /*

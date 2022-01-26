@@ -1,6 +1,16 @@
+#include <netinet/in.h>
 #include "Client.hpp"
 
-Client::Client(int socketFd) : _sockFd(socketFd), _nickname(""), _passValid(false), _registered(false), _isInvisible(false) {}
+Client::Client(int socketFd, struct sockaddr_in address) : _sockFd(socketFd) {
+	_nickname = "";
+	_passValid = false;
+	_registered = false;
+	_isInvisible = false;
+	sockaddr = address;
+	char ip[INET_ADDRSTRLEN];
+	inet_ntop( AF_INET, &sockaddr.sin_addr, ip, INET_ADDRSTRLEN );
+	_host = ip;
+}
 
 Client::~Client() {}
 
@@ -15,7 +25,7 @@ bool Client::getRegisterStatus() const { return _registered; }
 bool Client::getPassStatus() const { return _passValid; }
 bool Client::getInvisibleStatus() const { return _isInvisible; }
 bool Client::getReadCompleteStatus() const { return _readIsComplete; }
-bool Client::checkUserStatus() const { return((_username[0] && _host[0] && _servername[0] && _realname[0])); }
+bool Client::checkUserStatus() const { return((_username[0] && _servername[0] && _realname[0])); }
 
 void Client::setNick(const std::string &name) 			{ _nickname = name; }
 void Client::setUserName (const std::string &name) 		{ _username = name; }

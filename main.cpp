@@ -8,7 +8,7 @@ int main(int argc, char **argv) {
 		if (port < 1 || port > 65535)
 			errorMain();
 		std::cout << "Server started\n";
-		Server server("127.0.0.1", argv[1], argv[2]);
+		Server server(NULL, argv[1], argv[2]);
 		server.begin();
 		}
 	catch (...) {

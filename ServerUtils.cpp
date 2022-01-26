@@ -78,12 +78,12 @@ void Server::leaveChannel(Client &client, Channel *channel) {
 
 std::string Server::prefixCompose(Client &client) {
 	std::string msg;
-	msg = ":" + client.getNick() + "!" + client.getUsername() + "@" + getHost() + " ";
+	msg = ":" + client.getNick() + "!" + client.getUsername() + "@" + client.getHost() + " ";
 	return msg;
 }
 
 /* client - who made an action, channel - where action was made */
-void Server::standartReply(Client &client, Channel *channel, const std::string &command, const std::string &param) {//todo add : for join before param for join?
+void Server::standartReply(Client &client, Channel *channel, const std::string &command, const std::string &param) {
 	std::string msg;
 	msg = prefixCompose(client) + command + " " + param + "\n";
 	channel->sendMsgToChan(msg, &client, true);
