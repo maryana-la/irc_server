@@ -21,6 +21,7 @@ std::string Client::getUsername() const { return _username; }
 std::string	Client::getHost() const	{ return _host; }
 std::string Client::getRealname() const	{ return _realname; }
 std::string Client::getMessage() const { return _message; }
+std::string Client::getAwayMessage() const { return _awayMessage; }
 bool Client::getRegisterStatus() const { return _registered; }
 bool Client::getPassStatus() const { return _passValid; }
 bool Client::getInvisibleStatus() const { return _isInvisible; }
@@ -32,6 +33,7 @@ void Client::setUserName (const std::string &name) 		{ _username = name; }
 void Client::setHostName (const std::string &name) 		{ _host = name; }
 void Client::setServerName (const std::string &name) 	{ _servername = name; }
 void Client::setRealName (const std::string &name) 		{ _realname = name; }
+void Client::setAwayMessage (const std::string &msg)	{ _awayMessage = msg; }
 void Client::setPassStatus()							{ _passValid = true; }
 void Client::setRegisterStatus()						{ _registered = true; }
 void Client::setInvisibleStatus(bool status) 			{ _isInvisible = status; }
