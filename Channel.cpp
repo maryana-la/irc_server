@@ -64,7 +64,7 @@ void Channel::deleteUser(Client &client) {
 	std::vector<Client *>::iterator ite = _users.end();
 	for (; it != ite; it++) {
 		if ((*it)->getNick() == client.getNick())
-			_users.erase(it);//todo add break
+			_users.erase(it);
 	}
 }
 

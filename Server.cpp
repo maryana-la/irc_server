@@ -19,7 +19,7 @@ void Server::begin() {
 
 	//	структура позволяет обращаться элементам адреса сокета
 	_sockaddr.sin_family = AF_INET; // cемейство адресов, AF_INET
-	_sockaddr.sin_addr.s_addr = INADDR_ANY; // = INADDR_ANY; // используйте мой IPv4 адрес
+	_sockaddr.sin_addr.s_addr = _allowedIP; // = INADDR_ANY; // используйте мой IPv4 адрес
 	_sockaddr.sin_port = htons(strtol(_port.c_str(), NULL, 10)); // преобразовывает числа в порядок байтов сети
 
 	//связываем сокет с конкретным адресом в списке res, а не со всем списком

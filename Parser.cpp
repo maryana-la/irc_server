@@ -4,7 +4,6 @@ void Server::parser(Client *client, std::string msg) {
 
 
 	std::vector<std::string> common;
-	//	msg.erase(std::remove(msg.begin(), msg.end(), ':'), msg.end());
 	common = split(msg, "\r\n");
 
 	/* find command and execute */
@@ -19,8 +18,6 @@ void Server::parser(Client *client, std::string msg) {
 				if (!client->getRegisterStatus())
 					throw static_cast<std::string>(ERR_NOTREGISTERED);
 			}
-
-			// todo replace with switch case
 			if (args[0] == "PASS" || args[0] == "pass")
 				passExec(*client, args);
 			else if (args[0] == "USER" || args[0] == "user")
